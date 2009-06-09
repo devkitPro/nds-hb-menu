@@ -5,6 +5,8 @@
 #include <sys/dir.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdio.h>
+
 #include <nds.h>
 
 #define PATH_LEN 1024
