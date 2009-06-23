@@ -113,8 +113,7 @@ static inline void copyLoop (u32* dest, const u32* src, u32 size) {
 	} while (size -= 4);
 }
 
-#define resetCpu() \
-		__asm volatile("swi 0x000000")
+#define resetCpu() __asm volatile("\tswi 0x000000\n");
 
 /*-------------------------------------------------------------------------
 passArgs_ARM7
@@ -188,31 +187,31 @@ void resetMemory_ARM7 (void)
   __asm volatile (
 	// clear exclusive IWRAM
 	// 0380:0000 to 0380:FFFF, total 64KiB
-	"mov r0, #0 				\n"	
-	"mov r1, #0 				\n"
-	"mov r2, #0 				\n"
-	"mov r3, #0 				\n"
-	"mov r4, #0 				\n"
-	"mov r5, #0 				\n"
-	"mov r6, #0 				\n"
-	"mov r7, #0 				\n"
-	"mov r8, #0x03800000		\n"	// Start address part 1
-	"sub r8, #0x00008000		\n" // Start address part 2
-	"mov r9, #0x03800000		\n" // End address part 1
-	"orr r9, r9, #0x10000		\n" // End address part 2
+	"\tmov r0, #0 				\n"	
+	"\tmov r1, #0 				\n"
+	"\tmov r2, #0 				\n"
+	"\tmov r3, #0 				\n"
+	"\tmov r4, #0 				\n"
+	"\tmov r5, #0 				\n"
+	"\tmov r6, #0 				\n"
+	"\tmov r7, #0 				\n"
+	"\tmov r8, #0x03800000		\n"	// Start address part 1
+	"\tsub r8, #0x00008000		\n" // Start address part 2
+	"\tmov r9, #0x03800000		\n" // End address part 1
+	"\torr r9, r9, #0x10000		\n" // End address part 2
 	"clear_EIWRAM_loop:			\n"
-	"stmia r8!, {r0, r1, r2, r3, r4, r5, r6, r7} \n"
-	"cmp r8, r9					\n"
-	"blt clear_EIWRAM_loop		\n"
+	"\tstmia r8!, {r0, r1, r2, r3, r4, r5, r6, r7} \n"
+	"\tcmp r8, r9					\n"
+	"\tblt clear_EIWRAM_loop		\n"
 
 	// clear most of EWRAM - except after 0x023FFE00, which has the ARM9 loop
-	"mov r8, #0x02000000		\n"	// Start address
-	"mov r9, #0x02400000		\n" // End address part 1
-	"sub r9, #0x00000200		\n" // End address part 2
+	"\tmov r8, #0x02000000		\n"	// Start address
+	"\tmov r9, #0x02400000		\n" // End address part 1
+	"\tsub r9, #0x00000200		\n" // End address part 2
 	"clear_EXRAM_loop:			\n"
-	"stmia r8!, {r0, r1, r2, r3, r4, r5, r6, r7} \n"
-	"cmp r8, r9					\n"
-	"blt clear_EXRAM_loop		\n"
+	"\tstmia r8!, {r0, r1, r2, r3, r4, r5, r6, r7} \n"
+	"\tcmp r8, r9					\n"
+	"\tblt clear_EXRAM_loop		\n"
 	:
 	:
 	: "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9"
@@ -369,9 +368,6 @@ void __attribute__ ((long_call)) __attribute__((noreturn)) startBinary_ARM9 (voi
 	while(REG_VCOUNT!=191);
 	while(REG_VCOUNT==191);
 	while ( ARM9_START_FLAG != 1 );
-	// wait for vblank
-	while(REG_VCOUNT!=191);
-	while(REG_VCOUNT==191);
 	resetCpu();
 	while(1);
 }
