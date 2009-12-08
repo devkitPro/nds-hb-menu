@@ -7,10 +7,6 @@ MEMORY {
 	vram	: ORIGIN = 0x06000000, LENGTH = 128K
 }
 
-__vram_start	= 0x037F8000;
-__vram_end		= 0x037FC000;
-
-
 __vram_start	=	ORIGIN(vram);
 __vram_top	=	ORIGIN(vram)+ LENGTH(vram);
 __sp_irq	=	__vram_top - 0x60;
