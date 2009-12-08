@@ -284,9 +284,9 @@ int runNds (const void* loader, u32 loaderSize, u32 cluster, bool initDisc, bool
 	VRAM_C_CR = VRAM_ENABLE | VRAM_C_ARM7_0x06000000;	
 	// Reset into a passme loop
 	REG_EXMEMCNT |= ARM7_OWNS_ROM | ARM7_OWNS_CARD;
-	*((vu32*)0x027FFFFC) = 0;
-	*((vu32*)0x027FFE04) = (u32)0xE59FF018;
-	*((vu32*)0x027FFE24) = (u32)0x027FFE04;
+	*((vu32*)0x02FFFFFC) = 0;
+	*((vu32*)0x02FFFE04) = (u32)0xE59FF018;
+	*((vu32*)0x02FFFE24) = (u32)0x02FFFE04;
 
 	swiSoftReset(); 
 	return true;

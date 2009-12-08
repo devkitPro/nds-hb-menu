@@ -30,8 +30,7 @@ License:
  project at chishm@hotmail.com
  
 Helpful information:
- This code runs from the first Shared IWRAM bank:
- 0x037F8000 to 0x037FC000
+ This code runs from VRAM bank C on ARM7
 ------------------------------------------------------------------*/
 
 #include <nds/ndstypes.h>
@@ -53,12 +52,12 @@ Helpful information:
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Important things
-#define TEMP_MEM 0x027FE000
-#define NDS_HEAD 0x027FFE00
-#define TEMP_ARM9_START_ADDRESS (*(vu32*)0x027FFFF4)
+#define TEMP_MEM 0x02FFE000
+#define NDS_HEAD 0x02FFFE00
+#define TEMP_ARM9_START_ADDRESS (*(vu32*)0x02FFFFF4)
 
 
-#define ARM9_START_FLAG (*(vu8*)0x027FFDFF)
+#define ARM9_START_FLAG (*(vu8*)0x02FFFDFF)
 const char* bootName = "_BOOT_DS.NDS";
 
 extern unsigned long _start;
@@ -98,13 +97,6 @@ void boot_readFirmware (uint32 address, uint8 * buffer, uint32 size) {
   REG_SPICNT = 0;
 }
 
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// Loader functions
-
-void CpuFastSet (u32 src, u32 dest, u32 ctrl)
-{
-	__asm volatile ("swi 0x0C0000\n");
-}
 
 static inline void copyLoop (u32* dest, const u32* src, u32 size) {
 	size = (size +3) & ~3;
@@ -232,9 +224,9 @@ void resetMemory_ARM7 (void)
 	boot_readFirmware(settingsOffset + 0x170, &settings2, 0x1);
 	
 	if ((settings1 & 0x7F) == ((settings2+1) & 0x7F)) {
-		boot_readFirmware(settingsOffset + 0x000, (u8*)0x027FFC80, 0x70);
+		boot_readFirmware(settingsOffset + 0x000, (u8*)0x02FFFC80, 0x70);
 	} else {
-		boot_readFirmware(settingsOffset + 0x100, (u8*)0x027FFC80, 0x70);
+		boot_readFirmware(settingsOffset + 0x100, (u8*)0x02FFFC80, 0x70);
 	}
 }
 
@@ -339,12 +331,12 @@ void __attribute__ ((long_call)) __attribute__((noreturn)) resetMemory2_ARM9 (vo
 	);
 
 	// Return to passme loop
-	*((vu32*)0x027FFE04) = (u32)0xE59FF018;		// ldr pc, 0x027FFE24
-	*((vu32*)0x027FFE24) = (u32)0x027FFE04;		// Set ARM9 Loop address
+	*((vu32*)0x02FFFE04) = (u32)0xE59FF018;		// ldr pc, 0x02FFFE24
+	*((vu32*)0x02FFFE24) = (u32)0x02FFFE04;		// Set ARM9 Loop address
 
 	asm volatile(
 		"\tbx %0\n"
-		: : "r" (0x027FFE04)
+		: : "r" (0x02FFFE04)
 	);
 	while(1);
 }
@@ -359,7 +351,7 @@ Modified by Chishm:
  * Removed MultiNDS specific stuff
 --------------------------------------------------------------------------*/
 #define startBinary_ARM9_size 0x100
-void __attribute__ ((long_call)) __attribute__((noreturn)) startBinary_ARM9 (void)
+void __attribute__ ((long_call)) startBinary_ARM9 (void)
 {
 	REG_IME=0;
 	REG_EXMEMCNT = 0xE880;
@@ -369,7 +361,6 @@ void __attribute__ ((long_call)) __attribute__((noreturn)) startBinary_ARM9 (voi
 	while(REG_VCOUNT==191);
 	while ( ARM9_START_FLAG != 1 );
 	resetCpu();
-	while(1);
 }
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -394,9 +385,9 @@ int main (void) {
 	// ARM9 clears its memory part 2
 	// copy ARM9 function to RAM, and make the ARM9 jump to it
 	copyLoop((void*)TEMP_MEM, (void*)resetMemory2_ARM9, resetMemory2_ARM9_size);
-	(*(vu32*)0x027FFE24) = (u32)TEMP_MEM;	// Make ARM9 jump to the function
+	(*(vu32*)0x02FFFE24) = (u32)TEMP_MEM;	// Make ARM9 jump to the function
 	// Wait until the ARM9 has completed its task
-	while ((*(vu32*)0x027FFE24) == (u32)TEMP_MEM);
+	while ((*(vu32*)0x02FFFE24) == (u32)TEMP_MEM);
 
 	// Get ARM7 to clear RAM
 	resetMemory_ARM7();	
@@ -404,7 +395,7 @@ int main (void) {
 	// ARM9 enters a wait loop
 	// copy ARM9 function to RAM, and make the ARM9 jump to it
 	copyLoop((void*)TEMP_MEM, (void*)startBinary_ARM9, startBinary_ARM9_size);
-	(*(vu32*)0x027FFE24) = (u32)TEMP_MEM;	// Make ARM9 jump to the function
+	(*(vu32*)0x02FFFE24) = (u32)TEMP_MEM;	// Make ARM9 jump to the function
 
 	// Load the NDS file
 	loadBinary_ARM7(fileCluster);
