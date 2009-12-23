@@ -50,6 +50,8 @@ Helpful information:
 #include "fat.h"
 #include "dldi_patcher.h"
 
+void arm7clearRAM();
+
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Important things
 #define TEMP_MEM 0x02FFE000
@@ -105,7 +107,7 @@ static inline void copyLoop (u32* dest, const u32* src, u32 size) {
 	} while (size -= 4);
 }
 
-#define resetCpu() __asm volatile("\tswi 0x000000\n");
+//#define resetCpu() __asm volatile("\tswi 0x000000\n");
 
 /*-------------------------------------------------------------------------
 passArgs_ARM7
@@ -166,54 +168,15 @@ void resetMemory_ARM7 (void)
 		TIMER_CR(i) = 0;
 		TIMER_DATA(i) = 0;
 	}
+	
+	arm7clearRAM();
 
-	//switch to user mode
-  __asm volatile(
-	"mov r6, #0x1F                \n"
-	"msr cpsr, r6                 \n"
-	:
-	:
-	: "r6"
-	);
 
-  __asm volatile (
-	// clear exclusive IWRAM
-	// 0380:0000 to 0380:FFFF, total 64KiB
-	"\tmov r0, #0 				\n"	
-	"\tmov r1, #0 				\n"
-	"\tmov r2, #0 				\n"
-	"\tmov r3, #0 				\n"
-	"\tmov r4, #0 				\n"
-	"\tmov r5, #0 				\n"
-	"\tmov r6, #0 				\n"
-	"\tmov r7, #0 				\n"
-	"\tmov r8, #0x03800000		\n"	// Start address part 1
-	"\tsub r8, #0x00008000		\n" // Start address part 2
-	"\tmov r9, #0x03800000		\n" // End address part 1
-	"\torr r9, r9, #0x10000		\n" // End address part 2
-	"clear_EIWRAM_loop:			\n"
-	"\tstmia r8!, {r0, r1, r2, r3, r4, r5, r6, r7} \n"
-	"\tcmp r8, r9					\n"
-	"\tblt clear_EIWRAM_loop		\n"
-
-	// clear most of EWRAM - except after 0x023FFE00, which has the ARM9 loop
-	"\tmov r8, #0x02000000		\n"	// Start address
-	"\tmov r9, #0x02400000		\n" // End address part 1
-	"\tsub r9, #0x00000200		\n" // End address part 2
-	"clear_EXRAM_loop:			\n"
-	"\tstmia r8!, {r0, r1, r2, r3, r4, r5, r6, r7} \n"
-	"\tcmp r8, r9					\n"
-	"\tblt clear_EXRAM_loop		\n"
-	:
-	:
-	: "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9"
-	);
-  
 	REG_IE = 0;
 	REG_IF = ~0;
 	(*(vu32*)(0x04000000-4)) = 0;  //IRQ_HANDLER ARM7 version
 	(*(vu32*)(0x04000000-8)) = ~0; //VBLANK_INTR_WAIT_FLAGS, ARM7 version
-	REG_POWERCNT = 1;  //turn off power to stuffs
+	REG_POWERCNT = 1;  //turn off power to stuff
 	
 	// Get settings location
 	boot_readFirmware((u32)0x00020, (u8*)&settingsOffset, 0x2);
@@ -265,13 +228,14 @@ Modified by Chishm:
  * Removed MultiNDS specific stuff
 --------------------------------------------------------------------------*/
 void startBinary_ARM7 (void) {	
-
+	REG_IME=0;
 	while(REG_VCOUNT!=191);
 	while(REG_VCOUNT==191);
 	// copy NDS ARM9 start address into the header, starting ARM9
 	ARM9_START_FLAG = 1;
 	// Start ARM7
-	resetCpu();
+	VoidFn arm7code = *(VoidFn*)(0x2FFFE34);
+	arm7code();
 }
 
 
@@ -317,18 +281,6 @@ void __attribute__ ((long_call)) __attribute__((noreturn)) resetMemory2_ARM9 (vo
 
 	//set shared ram to ARM7
 	WRAM_CR = 0x03;
-	
-	// BIOS resets stack to Nintendo dtcm address
-	// reset dtcm address & stack to avoid exceptions
-	asm volatile(
-		"\t.cpu arm946e-s\n"
-		"\tmov	r1, #0x800000\n"
-		"\torr	r1,r1,#0x0a\n"
-		"\tmcr	p15, 0, r1, c9, c1,0\n"
-		"\tmov	r13,%0\n"
-		"\t.cpu arm7tdmi\n"
-		: : "r" (0x0803fc0)
-	);
 
 	// Return to passme loop
 	*((vu32*)0x02FFFE04) = (u32)0xE59FF018;		// ldr pc, 0x02FFFE24
@@ -340,8 +292,6 @@ void __attribute__ ((long_call)) __attribute__((noreturn)) resetMemory2_ARM9 (vo
 	);
 	while(1);
 }
-
-
 
 /*-------------------------------------------------------------------------
 startBinary_ARM9
@@ -360,7 +310,8 @@ void __attribute__ ((long_call)) startBinary_ARM9 (void)
 	while(REG_VCOUNT!=191);
 	while(REG_VCOUNT==191);
 	while ( ARM9_START_FLAG != 1 );
-	resetCpu();
+	VoidFn arm9code = *(VoidFn*)(0x2FFFE24);
+	arm9code();
 }
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
