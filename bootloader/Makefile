@@ -21,7 +21,7 @@ SPECS		:=  specs
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-ARCH	:=	-mthumb -mthumb-interwork
+ARCH	:=	-marm -mthumb-interwork
 
 CFLAGS	:=	-Wall -Os\
 			-mcpu=arm7tdmi -mtune=arm7tdmi -fomit-frame-pointer\
