@@ -44,11 +44,11 @@ int main(int argc, char **argv) {
 		stop();
 	} 
 	
-	if (stat (DEFAULT_FILE, &st) >= 0) {
-		filename = DEFAULT_FILE;
-	} else {
+//	if (stat (DEFAULT_FILE, &st) >= 0) {
+//		filename = DEFAULT_FILE;
+//	} else {
 		filename = browseForFile (".nds");
-	}
+//	}
 
 	// Construct a command line if we weren't supplied with one
 	getcwd (filePath, MAXPATHLEN);
