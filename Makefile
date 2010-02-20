@@ -71,7 +71,7 @@ CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 PNGFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.png)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
-BINFILES	:=	load.bin
+BINFILES	:=	load.bin bootstub.bin
  
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
@@ -107,9 +107,9 @@ else
 	endif
 endif
  
-.PHONY: bootloader $(BUILD) clean
+.PHONY: bootloader bootstub $(BUILD) clean
 
-all:	bootloader $(BUILD)
+all:	bootloader bootstub $(BUILD)
 
 #---------------------------------------------------------------------------------
 $(BUILD):
@@ -121,12 +121,16 @@ clean:
 	@echo clean ...
 	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).nds $(TARGET).arm9
 	@$(MAKE) -C bootloader clean
+	@$(MAKE) -C bootstub clean
 
 data:
 	@mkdir -p data
 
 bootloader: data
 	@$(MAKE) -C bootloader
+
+bootstub: data
+	@$(MAKE) -C bootstub
 
 #---------------------------------------------------------------------------------
 else

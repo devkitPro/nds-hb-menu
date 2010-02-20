@@ -41,6 +41,8 @@ int main(int argc, char **argv) {
 	} 
 	
 	filename = browseForFile (".nds");
+	
+	installBootStub();
 
 	// Construct a command line if we weren't supplied with one
 	getcwd (filePath, MAXPATHLEN);

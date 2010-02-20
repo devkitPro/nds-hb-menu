@@ -6,6 +6,7 @@
 #include <fat.h>
 
 #include "load_bin.h"
+#include "bootstub_bin.h"
 
 #include "nds_loader_arm9.h"
 #define LCDC_BANK_C (u16*)0x06840000
@@ -323,5 +324,22 @@ int runNdsFile (const char* filename, int argc, const char** argv)
 	}
 	
 	return runNds (load_bin, load_bin_size, st.st_ino, false, true, argc, argv);
+}
+
+int installBootStub() {
+	extern char *fake_heap_end;
+	struct __bootstub *bootcode = (struct __bootstub *)fake_heap_end;
+
+	memcpy(fake_heap_end,bootstub_bin,bootstub_bin_size);
+	memcpy(fake_heap_end+bootstub_bin_size,load_bin,load_bin_size);
+
+	int ret = dldiPatchLoader((data_t*)(fake_heap_end+bootstub_bin_size), load_bin_size,false);
+	bootcode->arm9reboot = (VoidFn)(((u32)bootcode->arm9reboot)+fake_heap_end); 
+	bootcode->arm7reboot = (VoidFn)(((u32)bootcode->arm7reboot)+fake_heap_end); 
+	bootcode->bootsize = load_bin_size;
+	
+	DC_FlushAll();
+
+	return ret;	
 }
 
