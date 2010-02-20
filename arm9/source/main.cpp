@@ -9,8 +9,6 @@
 #include "nds_loader_arm9.h"
 #include "file_browse.h"
 
-const char DEFAULT_FILE[] = "fat0:/_BOOT_DS.NDS";
-
 void stop (void) 
 {
 	while (1) {
@@ -22,7 +20,6 @@ void stop (void)
 int main(int argc, char **argv) {
 //---------------------------------------------------------------------------------
 
-	struct stat st;
 	const char* argarray[2];
 	char filePath[MAXPATHLEN * 2];
 	int pathLen;
@@ -35,7 +32,6 @@ int main(int argc, char **argv) {
 	vramSetBankH(VRAM_H_SUB_BG);
 	consoleInit(NULL, 0, BgType_Text4bpp, BgSize_T_256x256, 15, 0, false, true);
 
-	iprintf("%d argument(s)\n",argc);
 	iprintf ("Init'ing FAT...");
 	if (fatInitDefault()) {
 		iprintf ("okay\n");
@@ -44,11 +40,7 @@ int main(int argc, char **argv) {
 		stop();
 	} 
 	
-//	if (stat (DEFAULT_FILE, &st) >= 0) {
-//		filename = DEFAULT_FILE;
-//	} else {
-		filename = browseForFile (".nds");
-//	}
+	filename = browseForFile (".nds");
 
 	// Construct a command line if we weren't supplied with one
 	getcwd (filePath, MAXPATHLEN);
