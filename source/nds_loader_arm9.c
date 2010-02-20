@@ -288,6 +288,13 @@ int runNds (const void* loader, u32 loaderSize, u32 cluster, bool initDisc, bool
 	*((vu32*)0x02FFFE04) = (u32)0xE59FF018;
 	*((vu32*)0x02FFFE24) = (u32)0x02FFFE04;
 
+	*((vu32*)0x02FFFE34) = (u32)0x06000000;
+	REG_IPC_FIFO_TX = 0x4000c;
+	while((REG_IPC_SYNC & 0x0f) != 1);
+	REG_IPC_SYNC = 0x100;
+	while((REG_IPC_SYNC & 0x0f) != 0);
+	REG_IPC_SYNC = 0;
+
 	swiSoftReset(); 
 	return true;
 }
