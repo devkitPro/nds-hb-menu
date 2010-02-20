@@ -15,11 +15,11 @@ _start:
 	b	startUp
 	
 storedFileCluster:
-	.word	0x00000000
+	.word	0x0FFFFFFF		@ default _BOOT_DS.NDS
 initDisc:
 	.word	0x00000001		@ init the disc by default
 wantToPatchDLDI:
-	.word	0x00000000		@ by default, don't patch the DLDI section of the loaded NDS
+	.word	0x00000001		@ by default patch the DLDI section of the loaded NDS
 @ Used for passing arguments to the loaded app
 argStart:
 	.word	_end - _start
