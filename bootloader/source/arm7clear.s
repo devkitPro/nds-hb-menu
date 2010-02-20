@@ -3,6 +3,7 @@
 
 arm7clearRAM:
 
+	push	{r0-r9}
 	// clear exclusive IWRAM
 	// 0380:0000 to 0380:FFFF, total 64KiB
 	mov	r0, #0
@@ -22,14 +23,26 @@ clear_IWRAM_loop:
 	cmp	r8, r9
 	blt	clear_IWRAM_loop
 
-	// clear most of EWRAM - except after 0x023FFE00, which has the ARM9 loop
+	// clear most of EWRAM - except after RAM end - 0xc000, which has the bootstub
 	mov	r8, #0x02000000
+	
+	ldr	r9,=0x4004008
+	ldr	r9,[r9]
+	ands	r9,r9,#0x8000
+	bne	dsi_mode
+
 	mov	r9, #0x02400000
-	sub	r9, #0x00000200
+	b	ds_mode
+dsi_mode:
+	mov	r9, #0x03000000	
+ds_mode:
+	sub	r9, #0x0000c000
 clear_EWRAM_loop:
 	stmia	r8!, {r0, r1, r2, r3, r4, r5, r6, r7}
 	cmp	r8, r9
 	blt	clear_EWRAM_loop
+
+	pop	{r0-r9}
 	
 	bx	lr
   
