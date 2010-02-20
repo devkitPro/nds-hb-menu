@@ -301,7 +301,7 @@ Modified by Chishm:
  * Removed MultiNDS specific stuff
 --------------------------------------------------------------------------*/
 #define startBinary_ARM9_size 0x100
-void __attribute__ ((long_call)) startBinary_ARM9 (void)
+void __attribute__ ((long_call)) __attribute__((noreturn)) startBinary_ARM9 (void)
 {
 	REG_IME=0;
 	REG_EXMEMCNT = 0xE880;
@@ -312,6 +312,7 @@ void __attribute__ ((long_call)) startBinary_ARM9 (void)
 	while ( ARM9_START_FLAG != 1 );
 	VoidFn arm9code = *(VoidFn*)(0x2FFFE24);
 	arm9code();
+	while(1);
 }
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
