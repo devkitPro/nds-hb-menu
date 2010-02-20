@@ -50,7 +50,7 @@ ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
  
 export TOPDIR	:=	$(CURDIR)
-export LOADBIN	:=	$(CURDIR)/$(TARGET).bin
+export LOADBIN	:=	$(CURDIR)/../data/$(TARGET).bin
 export LOADELF	:=	$(CURDIR)/$(TARGET).elf
 export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
@@ -102,7 +102,6 @@ DEPENDS	:=	$(OFILES:.o=.d)
 #---------------------------------------------------------------------------------
 $(LOADBIN)	:	$(LOADELF)
 	@$(OBJCOPY) -O binary $< $@
-	cp $(LOADBIN) $(TOPDIR)/../arm9/data
 	@echo built ... $(notdir $@)
 
 
