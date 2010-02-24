@@ -13,9 +13,8 @@ hook9from7:
 	str	r1, [r0]
 
 	mov	r3, #0x04000000
-	mov	r0, #0x40000
-	add	r0, #0xC
-	str	r0, [r12, #0x188]
+	ldr	r0, resetcode
+	str	r0, [r3, #0x188]
 	add	r3, r3, #0x180
 
 	mov	r2, #1
@@ -32,6 +31,12 @@ hook9from7:
 	
 	bx	lr
 	
+waitsync:
+	ldrh	r0, [r3]
+	and	r0, r0, #0x000f
+	cmp	r0, r2
+	bne	waitsync
+	bx	lr
 
 arm7bootaddr:
 	.word	0x02FFFE34
@@ -40,6 +45,8 @@ arm9bootaddr:
 tcmpudisable:
 	.word	0x2078
 
+resetcode:
+	.word	0x0c04000c
 hook7from9:
 	mov	r12, #0x04000000
 	strb	r12, [r12,#0x208]
@@ -58,9 +65,6 @@ hook7from9:
 
 	@ Wait for write buffer to empty 
 	mcr	p15, 0, r0, c7, c10, 4
-	mov	r11, #0x05000000
-	mov	r0, #0x1f
-	str	r0, [r11, #0x400]
 
 	add	r3, r12, #0x180		@ r3 = 4000180
 
@@ -90,8 +94,7 @@ _copyloader:
 	mov	r1, #0x06000000
 	str	r1, [r0]
 	
-	mov	r0, #0x40000
-	add	r0, #0xC
+	ldr	r0, resetcode
 	str	r0, [r12, #0x188]
 
 	mov	r2, #1
@@ -106,9 +109,6 @@ _copyloader:
 	mov	r0, #0
 	strh	r0, [r3]
 
-	mov	r0, #0x3e0
-	str	r0, [r11, #0x400]
-
 	ldr	r0,arm9branchaddr
 	ldr	r1,branchinst
 	str	r1,[r0]
@@ -122,11 +122,5 @@ branchinst:
 arm9branchaddr:
 	.word 0x02fffe04
 
-waitsync:
-	ldrh	r0, [r3]
-	and	r0, r0, #0x000f
-	cmp	r0, r2
-	bne	waitsync
-	bx	lr
 
 _loader:
