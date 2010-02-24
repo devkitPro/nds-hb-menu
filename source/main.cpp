@@ -9,6 +9,8 @@
 #include "nds_loader_arm9.h"
 #include "file_browse.h"
 
+#include "hbmenu_banner.h"
+
 void stop (void) 
 {
 	while (1) {
@@ -25,7 +27,14 @@ int main(int argc, char **argv) {
 	int pathLen;
 	std::string filename;
 
-	videoSetMode(0);	//not using the main screen
+	videoSetMode(MODE_5_2D);
+	vramSetBankA(VRAM_A_MAIN_BG);
+
+	// set up our bitmap background
+	bgInit(3, BgType_Bmp16, BgSize_B16_256x256, 0,0);
+	
+	//decompress(hbmenu_bannerBitmap, BG_GFX,  LZ77Vram);
+	dmaCopy(hbmenu_bannerBitmap, BG_GFX, hbmenu_bannerBitmapLen);
 
 	// Subscreen as a console
 	videoSetModeSub(MODE_0_2D);

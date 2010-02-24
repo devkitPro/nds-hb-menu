@@ -22,7 +22,7 @@ BUILD		:=	build
 SOURCES		:=	source
 INCLUDES	:=	include
 DATA		:=	data  
-GRAPHICS	:=  
+GRAPHICS	:=  gfx
 
 #---------------------------------------------------------------------------------
 # options for code generation
