@@ -143,7 +143,7 @@ string browseForFile (const string& extension)
 		// Power saving loop. Only poll the keys once per frame and sleep the CPU if there is nothing else to do
 		do {
 			scanKeys();
-			pressed = keysDown();
+			pressed = keysDownRepeat();
 			swiWaitForVBlank();
 		} while (!pressed);
 	
