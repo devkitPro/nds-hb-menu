@@ -6,7 +6,10 @@
 #include <fat.h>
 
 #include "load_bin.h"
+
+#ifndef _NO_BOOTSTUB_
 #include "bootstub_bin.h"
+#endif
 
 #include "nds_loader_arm9.h"
 #define LCDC_BANK_C (u16*)0x06840000
@@ -321,6 +324,7 @@ int runNdsFile (const char* filename, int argc, const char** argv)
 	return runNds (load_bin, load_bin_size, st.st_ino, false, true, argc, argv);
 }
 
+#ifndef _NO_BOOTSTUB_
 int installBootStub() {
 	extern char *fake_heap_end;
 	struct __bootstub *bootcode = (struct __bootstub *)fake_heap_end;
@@ -338,3 +342,4 @@ int installBootStub() {
 	return ret;	
 }
 
+#endif
