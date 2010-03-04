@@ -127,7 +127,7 @@ $(BUILD):
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).nds $(TARGET).arm9
+	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).nds $(TARGET).arm9 data
 	@$(MAKE) -C bootloader clean
 	@$(MAKE) -C bootstub clean
 	@$(MAKE) -C BootStrap clean
