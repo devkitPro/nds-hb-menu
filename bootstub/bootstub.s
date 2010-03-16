@@ -19,14 +19,18 @@
 ------------------------------------------------------------------*/
 	.global	_start
 	
+//-----------------------------------------------------------------
 _start:
+//-----------------------------------------------------------------
 	.ascii	"bootstub"
 	.word	hook7from9 - _start
 	.word	hook9from7 - _start
 _loader_size:
 	.word	0
 
+//-----------------------------------------------------------------
 hook9from7:
+//-----------------------------------------------------------------
 	ldr	r0, arm9bootaddr
 	adr	r1, hook7from9
 	str	r1, [r0]
@@ -36,6 +40,21 @@ hook9from7:
 	str	r0, [r3, #0x188]
 	add	r3, r3, #0x180
 
+	adr	r0, waitcode_start
+	ldr	r1, arm7base
+	adr	r2, waitcode_end
+1:	ldr	r4, [r0],#4
+	str	r4, [r1],#4
+	cmp	r2, r0
+	bne	1b
+	
+	ldr	r1, arm7base
+	bx	r1
+
+//-----------------------------------------------------------------
+waitcode_start:
+//-----------------------------------------------------------------
+	push	{lr}
 	mov	r2, #1
 	bl	waitsync
 
@@ -47,6 +66,7 @@ hook9from7:
 
 	mov	r0, #0
 	strh	r0, [r3]
+	pop	{lr}
 	
 	bx	lr
 	
@@ -56,7 +76,10 @@ waitsync:
 	cmp	r0, r2
 	bne	waitsync
 	bx	lr
+waitcode_end:
 
+arm7base:
+	.word	0x037f8000
 arm7bootaddr:
 	.word	0x02FFFE34
 arm9bootaddr:
@@ -127,6 +150,8 @@ _copyloader:
 
 	mov	r0, #0
 	strh	r0, [r3]
+
+// set up and enter passme loop
 
 	ldr	r0,arm9branchaddr
 	ldr	r1,branchinst
