@@ -9,6 +9,12 @@ endif
 
 include $(DEVKITARM)/ds_rules
 
+export HBMENU_MAJOR	:= 0
+export HBMENU_MINOR	:= 1
+export HBMENU_PATCH	:= 1
+
+
+VERSION	:=	$(HBMENU_MAJOR).$(HBMENU_MINOR).$(HBMENU_PATCH)
 #---------------------------------------------------------------------------------
 # TARGET is the name of the output
 # BUILD is the directory where object files & intermediate files will be placed
@@ -117,7 +123,7 @@ dist:	all
 	@cp hbmenu.nds hbmenu/_BOOT_DS.NDS
 	@cp BootStrap/_DS_MENU.DAT BootStrap/ez5sys.bin BootStrap/akmenu4.nds hbmenu
 	@cp README.html COPYING hbmenu
-	@zip -9r hbmenu.zip hbmenu
+	@zip -9r hbmenu-$(VERSION).zip hbmenu
 
 #---------------------------------------------------------------------------------
 $(BUILD):
