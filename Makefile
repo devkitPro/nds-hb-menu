@@ -121,7 +121,7 @@ dist:	all
 	@rm	-fr	hbmenu
 	@mkdir hbmenu
 	@cp hbmenu.nds hbmenu/_BOOT_DS.NDS
-	@cp BootStrap/_DS_MENU.DAT BootStrap/ez5sys.bin BootStrap/akmenu4.nds hbmenu
+	@cp BootStrap/TTMENU.DAT BootStrap/_DS_MENU.DAT BootStrap/ez5sys.bin BootStrap/akmenu4.nds hbmenu
 	@cp README.html COPYING hbmenu
 	@zip -9r hbmenu-$(VERSION).zip hbmenu
 

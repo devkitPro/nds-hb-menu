@@ -16,7 +16,7 @@ export TOPDIR		:=	$(CURDIR)
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
-all: _DS_MENU.DAT ez5sys.bin akmenu4.nds
+all: _DS_MENU.DAT ez5sys.bin akmenu4.nds TTMENU.DAT
 
 _DS_MENU.DAT	:	$(TARGET).nds
 	@dlditool r4tfv2.dldi $<
@@ -29,6 +29,12 @@ ez5sys.bin	:	$(TARGET).nds
 akmenu4.nds	:	$(TARGET).nds
 	@cp $< $@
 	@dlditool ak2_sd.dldi $@
+
+TTMENU.DAT	:	$(TARGET).nds
+	@cp $< $@
+	@dlditool TTCARDIOLibrary.dldi $@
+
+
 
 #---------------------------------------------------------------------------------
 $(TARGET).nds	:	$(TARGET).arm7.elf $(TARGET).arm9.elf
@@ -46,5 +52,5 @@ $(TARGET).arm9.elf:
 clean:
 	$(MAKE) -C arm9 clean
 	$(MAKE) -C arm7 clean
-	rm -f $(TARGET).nds $(TARGET).arm7.elf $(TARGET).arm9.elf _DS_MENU.DAT ez5sys.bin akmenu4.nds
+	rm -f $(TARGET).nds $(TARGET).arm7.elf $(TARGET).arm9.elf _DS_MENU.DAT ez5sys.bin akmenu4.nds TTMENU.DAT
 
