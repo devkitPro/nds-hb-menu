@@ -23,7 +23,7 @@ SPECS		:=  specs
 #---------------------------------------------------------------------------------
 ARCH	:=	-marm -mthumb-interwork
 
-CFLAGS	:=	-Wall -Os\
+CFLAGS	:=	-Wall -O3\
 			-mcpu=arm7tdmi -mtune=arm7tdmi -fomit-frame-pointer\
 			-ffast-math \
 			$(ARCH)
