@@ -171,7 +171,6 @@ void resetMemory_ARM7 (void)
 	
 	arm7clearRAM();
 
-
 	REG_IE = 0;
 	REG_IF = ~0;
 	(*(vu32*)(0x04000000-4)) = 0;  //IRQ_HANDLER ARM7 version
@@ -232,6 +231,7 @@ void startBinary_ARM7 (void) {
 	while(REG_VCOUNT!=191);
 	while(REG_VCOUNT==191);
 	// copy NDS ARM9 start address into the header, starting ARM9
+	*((vu32*)0x02FFFE24) = TEMP_ARM9_START_ADDRESS;
 	ARM9_START_FLAG = 1;
 	// Start ARM7
 	VoidFn arm7code = *(VoidFn*)(0x2FFFE34);
@@ -247,7 +247,7 @@ Modified by Chishm:
  * Changed MultiNDS specific stuff
 --------------------------------------------------------------------------*/
 #define resetMemory2_ARM9_size 0x400
-void __attribute__ ((long_call)) __attribute__((noreturn)) resetMemory2_ARM9 (void) 
+void __attribute__ ((long_call)) __attribute__((naked)) __attribute__((noreturn)) resetMemory2_ARM9 (void) 
 {
  	register int i;
   
@@ -261,12 +261,17 @@ void __attribute__ ((long_call)) __attribute__((noreturn)) resetMemory2_ARM9 (vo
 	}
 
 	VRAM_CR = (VRAM_CR & 0xffff0000) | 0x00008080 ;
-	dmaFillWords( 0, (void*)0x04000000, 0x56);  //clear main display registers
-	dmaFillWords( 0, (void*)0x04001000, 0x56);  //clear sub  display registers
+	
+	u16 *mainregs = (u16*)0x04000000;
+	u16 *subregs = (u16*)0x04001000;
+	
+	for (i=0; i<43; i++) {
+		mainregs[i] = 0;
+		subregs[i] = 0;
+	}
 	
 	REG_DISPSTAT = 0;
-	videoSetMode(0);
-	videoSetModeSub(0);
+
 	VRAM_A_CR = 0;
 	VRAM_B_CR = 0;
 // Don't mess with the ARM7's VRAM
@@ -301,7 +306,7 @@ Modified by Chishm:
  * Removed MultiNDS specific stuff
 --------------------------------------------------------------------------*/
 #define startBinary_ARM9_size 0x100
-void __attribute__ ((long_call)) __attribute__((noreturn)) startBinary_ARM9 (void)
+void __attribute__ ((long_call)) __attribute__((noreturn)) __attribute__((naked)) startBinary_ARM9 (void)
 {
 	REG_IME=0;
 	REG_EXMEMCNT = 0xE880;
