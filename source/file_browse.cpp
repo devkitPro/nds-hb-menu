@@ -22,14 +22,12 @@
 #include "file_browse.h"
 #include <vector>
 #include <algorithm>
-#include <sys/dir.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include <dirent.h>
 
 #include <nds.h>
-
-#define PATH_LEN 1024
 
 #define SCREEN_COLS 32
 #define ENTRIES_PER_SCREEN 22
@@ -38,14 +36,13 @@
 
 using namespace std;
 
-struct DirEntry
-{
+struct DirEntry {
 	string name;
 	bool isDirectory;
 } ;
 
-bool nameEndsWith (const string& name, const string& extension)
-{
+bool nameEndsWith (const string& name, const string& extension) {
+
 	if (name.size() == 0 || name.size() < extension.size() || extension.size() == 0) {
 		return false;
 	}
@@ -53,8 +50,8 @@ bool nameEndsWith (const string& name, const string& extension)
 	return strcasecmp (name.c_str() + name.size() - extension.size(), extension.c_str()) == 0;
 }
 
-bool dirEntryPredicate (const DirEntry& lhs, const DirEntry& rhs)
-{
+bool dirEntryPredicate (const DirEntry& lhs, const DirEntry& rhs) {
+
 	if (!lhs.isDirectory && rhs.isDirectory) {
 		return false;
 	}
@@ -64,48 +61,48 @@ bool dirEntryPredicate (const DirEntry& lhs, const DirEntry& rhs)
 	return strcasecmp(lhs.name.c_str(), rhs.name.c_str()) < 0;
 }
 
-void getDirectoryContents (vector<DirEntry>& dirContents, const string& extension) 
-{
+void getDirectoryContents (vector<DirEntry>& dirContents, const string& extension) {
 	struct stat st;
-	char filename[PATH_LEN];
-	DIR_ITER* dir;
 
 	dirContents.clear();
 
-	dir = diropen ("."); 
+	DIR *pdir = opendir ("."); 
 	
-	if (dir == NULL) {
+	if (pdir == NULL) {
 		iprintf ("Unable to open the directory.\n");
 	} else {
-		while (dirnext(dir, filename, &st) == 0) {
+
+		while(true) {
 			DirEntry dirEntry;
-			
-			dirEntry.name = filename;
+
+			struct dirent* pent = readdir(pdir);
+			if(pent == NULL) break;
+				
+			stat(pent->d_name, &st);
+			dirEntry.name = pent->d_name;
 			dirEntry.isDirectory = (st.st_mode & S_IFDIR) ? true : false;
-			
-			if (dirEntry.name.compare(".") != 0 && (dirEntry.isDirectory || nameEndsWith(dirEntry.name, extension)))
-			{
+
+			if (dirEntry.name.compare(".") != 0 && (dirEntry.isDirectory || nameEndsWith(dirEntry.name, extension))) {
 				dirContents.push_back (dirEntry);
 			}
+
 		}
+		
+		closedir(pdir);
 	}	
-	
-	dirclose (dir);	
 	
 	sort(dirContents.begin(), dirContents.end(), dirEntryPredicate);
 }
 
-void getDirectoryContents (vector<DirEntry>& dirContents) 
-{
+void getDirectoryContents (vector<DirEntry>& dirContents) {
 	getDirectoryContents (dirContents, "");
 }
 
-void showDirectoryContents (const vector<DirEntry>& dirContents, int startRow)
-{
-	char path[PATH_LEN];
+void showDirectoryContents (const vector<DirEntry>& dirContents, int startRow) {
+	char path[PATH_MAX];
 	
 	
-	getcwd(path, PATH_LEN);
+	getcwd(path, PATH_MAX);
 	
 	// Clear the screen
 	iprintf ("\x1b[2J");
@@ -142,8 +139,7 @@ void showDirectoryContents (const vector<DirEntry>& dirContents, int startRow)
 	}
 }
 
-string browseForFile (const string& extension)
-{
+string browseForFile (const string& extension) {
 	int pressed = 0;
 	int screenOffset = 0;
 	int fileOffset = 0;
