@@ -49,8 +49,10 @@ Helpful information:
 
 #include "fat.h"
 #include "dldi_patcher.h"
+#include "card.h"
 
 void arm7clearRAM();
+bool sdmmc_readsectors(u32 sector_no, u32 numsectors, void *out);
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Important things
@@ -60,7 +62,7 @@ void arm7clearRAM();
 
 
 #define ARM9_START_FLAG (*(vu8*)0x02FFFDFF)
-const char* bootName = "_BOOT_DS.NDS";
+const char* bootName = "BOOT.NDS";
 
 extern unsigned long _start;
 extern unsigned long storedFileCluster;
@@ -322,8 +324,22 @@ void __attribute__ ((long_call)) __attribute__((noreturn)) __attribute__((naked)
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Main function
+bool sdmmc_inserted() {
+	return true;
+}
+
+bool sdmmc_startup() {
+	return true;
+}
 
 int main (void) {
+	u16 fs = *(u16*)(argStart + (int)&_start);
+	if (fs == ('s' | ('d' <<8) )) {
+		_io_dldi.fn_readSectors = sdmmc_readsectors;
+		_io_dldi.fn_isInserted = sdmmc_inserted;
+		_io_dldi.fn_startup = sdmmc_startup;
+	}
+
 	u32 fileCluster = storedFileCluster;
 	// Init card
 	if(!FAT_InitFiles(initDisc))

@@ -248,6 +248,8 @@ int runNds (const void* loader, u32 loaderSize, u32 cluster, bool initDisc, bool
 
 	irqDisable(IRQ_ALL);
 
+	if(argv[0][0]=='s' && argv[0][1]=='d') dldiPatchNds = false;
+
 	// Direct CPU access to VRAM bank C
 	VRAM_C_CR = VRAM_ENABLE | VRAM_C_LCD;
 	// Load the loader/patcher into the correct address
@@ -295,12 +297,13 @@ int runNds (const void* loader, u32 loaderSize, u32 cluster, bool initDisc, bool
 	writeAddr ((data_t*) LCDC_BANK_C, ARG_START_OFFSET, (addr_t)argStart - (addr_t)LCDC_BANK_C);
 	writeAddr ((data_t*) LCDC_BANK_C, ARG_SIZE_OFFSET, argSize);
 
-
-	// Patch the loader with a DLDI for the card
-	if (!dldiPatchLoader ((data_t*)LCDC_BANK_C, loaderSize, initDisc)) {
-		return 3;
+		
+	if(dldiPatchNds) {
+		// Patch the loader with a DLDI for the card
+		if (!dldiPatchLoader ((data_t*)LCDC_BANK_C, loaderSize, initDisc)) {
+			return 3;
+		}
 	}
-	
 
 	irqDisable(IRQ_ALL);
 
@@ -318,8 +321,7 @@ int runNds (const void* loader, u32 loaderSize, u32 cluster, bool initDisc, bool
 	return true;
 }
 
-int runNdsFile (const char* filename, int argc, const char** argv) 
-{
+int runNdsFile (const char* filename, int argc, const char** argv)  {
 	struct stat st;
 	char filePath[MAXPATHLEN * 2];
 	int pathLen;

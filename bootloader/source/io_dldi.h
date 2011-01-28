@@ -39,6 +39,6 @@
 #include "disc_io.h"
 
 // export interface
-extern const IO_INTERFACE _io_dldi ;
+extern IO_INTERFACE _io_dldi ;
 
 #endif	// define IO_DLDI_H
