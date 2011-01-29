@@ -430,6 +430,10 @@ u32 getBootFileCluster (const char* bootName)
 		return (CLUSTER_FREE);
 	}
 	
+	char *ptr = (char*)bootName;
+	while (*ptr != '.') ptr++;
+	int namelen = ptr - bootName;
+
 	maxSectors = (wrkDirCluster == FAT16_ROOT_DIR_CLUSTER ? (discData - discRootDir) : discSecPerClus);
 	// Scan Dir for correct entry
 	firstSector = discRootDir;
@@ -465,14 +469,14 @@ u32 getBootFileCluster (const char* bootName)
 		{
 			found = false;
 		}
-		for (nameOffset = 0; nameOffset < 8 && found; nameOffset++)
+		for (nameOffset = 0; nameOffset < namelen && found; nameOffset++)
 		{
 			if (ucase(dir.name[nameOffset]) != bootName[nameOffset])
 				found = false;
 		}
 		for (nameOffset = 0; nameOffset < 3 && found; nameOffset++)
 		{
-			if (ucase(dir.ext[nameOffset]) != bootName[nameOffset+9])
+			if (ucase(dir.ext[nameOffset]) != bootName[nameOffset+namelen+1])
 				found = false;
 		}
 		if (dir.name[0] == FILE_LAST)

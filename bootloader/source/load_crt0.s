@@ -28,6 +28,7 @@
 	.global wantToPatchDLDI
 	.global argStart
 	.global argSize
+	.global dsiSD
 @---------------------------------------------------------------------------------
 	.align	4
 	.arm
@@ -37,7 +38,7 @@ _start:
 	b	startUp
 	
 storedFileCluster:
-	.word	0x0FFFFFFF		@ default _BOOT_DS.NDS
+	.word	0x0FFFFFFF		@ default BOOT.NDS
 initDisc:
 	.word	0x00000001		@ init the disc by default
 wantToPatchDLDI:
@@ -49,7 +50,9 @@ argSize:
 	.word	0x00000000
 dldiOffset:
 	.word	_dldi_start - _start
-	
+dsiSD:
+	.word	0
+
 startUp:
 	mov	r0, #0x04000000		@ IME = 0;
 	add	r0, r0, #0x208

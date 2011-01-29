@@ -42,6 +42,7 @@
 #define WANT_TO_PATCH_DLDI_OFFSET 12
 #define ARG_START_OFFSET 16
 #define ARG_SIZE_OFFSET 20
+#define HAVE_DSISD_OFFSET 28
 
 
 typedef signed int addr_t;
@@ -248,8 +249,6 @@ int runNds (const void* loader, u32 loaderSize, u32 cluster, bool initDisc, bool
 
 	irqDisable(IRQ_ALL);
 
-	if(argv[0][0]=='s' && argv[0][1]=='d') dldiPatchNds = false;
-
 	// Direct CPU access to VRAM bank C
 	VRAM_C_CR = VRAM_ENABLE | VRAM_C_LCD;
 	// Load the loader/patcher into the correct address
@@ -260,9 +259,14 @@ int runNds (const void* loader, u32 loaderSize, u32 cluster, bool initDisc, bool
 	writeAddr ((data_t*) LCDC_BANK_C, STORED_FILE_CLUSTER_OFFSET, cluster);
 	// INIT_DISC = initDisc;
 	writeAddr ((data_t*) LCDC_BANK_C, INIT_DISC_OFFSET, initDisc);
+
+	if(argv[0][0]=='s' && argv[0][1]=='d') {
+		dldiPatchNds = false;
+		writeAddr ((data_t*) LCDC_BANK_C, HAVE_DSISD_OFFSET, 1);
+	}
+
 	// WANT_TO_PATCH_DLDI = dldiPatchNds;
 	writeAddr ((data_t*) LCDC_BANK_C, WANT_TO_PATCH_DLDI_OFFSET, dldiPatchNds);
-
 	// Give arguments to loader
 	argStart = (char*)LCDC_BANK_C + readAddr((data_t*)LCDC_BANK_C, ARG_START_OFFSET);
 	argStart = (char*)(((int)argStart + 3) & ~3);	// Align to word
@@ -342,19 +346,52 @@ int runNdsFile (const char* filename, int argc, const char** argv)  {
 		args[0] = filePath;
 		argv = args;
 	}
+
+	bool havedsiSD = false;
+
+	if(argv[0][0]=='s' && argv[0][1]=='d') havedsiSD = true;
 	
+	installBootStub(havedsiSD);
+
 	return runNds (load_bin, load_bin_size, st.st_ino, false, true, argc, argv);
 }
 
-bool installBootStub() {
+/*
+	b	startUp
+	
+storedFileCluster:
+	.word	0x0FFFFFFF		@ default BOOT.NDS
+initDisc:
+	.word	0x00000001		@ init the disc by default
+wantToPatchDLDI:
+	.word	0x00000001		@ by default patch the DLDI section of the loaded NDS
+@ Used for passing arguments to the loaded app
+argStart:
+	.word	_end - _start
+argSize:
+	.word	0x00000000
+dldiOffset:
+	.word	_dldi_start - _start
+dsiSD:
+	.word	0
+*/
+bool installBootStub(bool havedsiSD) {
 #ifndef _NO_BOOTSTUB_
 	extern char *fake_heap_end;
 	struct __bootstub *bootcode = (struct __bootstub *)fake_heap_end;
 
 	memcpy(fake_heap_end,bootstub_bin,bootstub_bin_size);
 	memcpy(fake_heap_end+bootstub_bin_size,load_bin,load_bin_size);
+	bool ret = false;
 
-	bool ret = dldiPatchLoader((data_t*)(fake_heap_end+bootstub_bin_size), load_bin_size,false);
+	if( havedsiSD) {
+		ret = true;
+		u32 *bootcode = (u32*)(fake_heap_end+bootstub_bin_size);
+		bootcode[3] = 0; // don't dldi patch
+		bootcode[7] = 1; // use internal dsi SD code
+	} else {
+		ret = dldiPatchLoader((data_t*)(fake_heap_end+bootstub_bin_size), load_bin_size,false);
+	}
 	bootcode->arm9reboot = (VoidFn)(((u32)bootcode->arm9reboot)+fake_heap_end); 
 	bootcode->arm7reboot = (VoidFn)(((u32)bootcode->arm7reboot)+fake_heap_end); 
 	bootcode->bootsize = load_bin_size;

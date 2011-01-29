@@ -70,6 +70,7 @@ extern unsigned long initDisc;
 extern unsigned long wantToPatchDLDI;
 extern unsigned long argStart;
 extern unsigned long argSize;
+extern unsigned long dsiSD;
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Firmware stuff
@@ -333,8 +334,7 @@ bool sdmmc_startup() {
 }
 
 int main (void) {
-	u16 fs = *(u16*)(argStart + (int)&_start);
-	if (fs == ('s' | ('d' <<8) )) {
+	if (dsiSD) {
 		_io_dldi.fn_readSectors = sdmmc_readsectors;
 		_io_dldi.fn_isInserted = sdmmc_inserted;
 		_io_dldi.fn_startup = sdmmc_startup;

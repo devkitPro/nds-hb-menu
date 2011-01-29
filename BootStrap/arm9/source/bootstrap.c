@@ -28,7 +28,7 @@
 int main( int argc, char **argv) {
 	consoleDemoInit();
 	if (fatInitDefault()) {
-		runNdsFile("/_BOOT_DS.NDS", 0, NULL);
+		runNdsFile("/BOOT.NDS", 0, NULL);
 	} else {
 		printf("FAT init failed!\n");
 	}
