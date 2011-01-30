@@ -68,7 +68,9 @@ int main(int argc, char **argv) {
 		iprintf ("fail!\n");
 		stop();
 	} 
-	
+
+	keysSetRepeat(25,5);
+
 	filename = browseForFile (".nds");
 
 	// Construct a command line if we weren't supplied with one
