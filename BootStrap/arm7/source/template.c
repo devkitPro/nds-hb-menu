@@ -50,8 +50,6 @@ int main() {
 
 	SetYtrigger(80);
 
-	installSoundFIFO();
-
 	installSystemFIFO();
 	
 	irqSet(IRQ_VCOUNT, VcountHandler);

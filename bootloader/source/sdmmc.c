@@ -10,27 +10,6 @@ static int sdmmc_gotcmd8reply = 0;
 static int sdmmc_sdhc = 0;
 
 //---------------------------------------------------------------------------------
-inline u16 sdmmc_read16(u16 reg) {
-//---------------------------------------------------------------------------------
-	return *(vu16*)(SDMMC_BASE + reg);
-}
-
-//---------------------------------------------------------------------------------
-inline void sdmmc_write16(u16 reg, u16 val) {
-//---------------------------------------------------------------------------------
-	*(vu16*)(SDMMC_BASE + reg) = val;
-}
-
-//---------------------------------------------------------------------------------
-inline void sdmmc_mask16(u16 reg, u16 clear, u16 set) {
-//---------------------------------------------------------------------------------
-	u16 val = sdmmc_read16(reg);
-	val &= ~clear;
-	val |= set;
-	sdmmc_write16(reg, val);
-}
-
-//---------------------------------------------------------------------------------
 int sdmmc_send_command(u16 cmd, u16 arg0, u16 arg1) {
 //---------------------------------------------------------------------------------
 	u16 is_stat0, was_stat0;
@@ -135,7 +114,7 @@ int sdmmc_sdcard_init() {
 
 	sdmmc_write16(REG_SDCLKCTL, 0x20);
 	sdmmc_write16(REG_SDOPT, 0x40EA); // XXX: document me!
-	sdmmc_write16(REG_SDDEVICE, SDMMC_DEVICE_SDCARD);
+	sdmmc_write16(0x02, 0x400);
 	sdmmc_curdevice = 0;
 
 	sdmmc_mask16(REG_SDCLKCTL, 0, 0x100);
