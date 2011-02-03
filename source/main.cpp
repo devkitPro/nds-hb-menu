@@ -42,6 +42,10 @@ void stop (void)
 int main(int argc, char **argv) {
 //---------------------------------------------------------------------------------
 
+	// overwrite reboot stub identifier
+	extern u64 *fake_heap_end;
+	*fake_heap_end = 0;
+
 	const char* argarray[2];
 	char filePath[MAXPATHLEN * 2];
 	int pathLen;
