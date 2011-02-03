@@ -469,6 +469,7 @@ u32 getBootFileCluster (const char* bootName)
 		{
 			found = false;
 		}
+		if(namelen<8 && dir.name[namelen]!=0x20) found = false;
 		for (nameOffset = 0; nameOffset < namelen && found; nameOffset++)
 		{
 			if (ucase(dir.name[nameOffset]) != bootName[nameOffset])
