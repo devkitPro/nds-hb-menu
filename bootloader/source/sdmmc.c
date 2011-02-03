@@ -10,6 +10,25 @@ static int sdmmc_gotcmd8reply = 0;
 static int sdmmc_sdhc = 0;
 
 //---------------------------------------------------------------------------------
+static void sdmmc_clkdelay0() {
+//---------------------------------------------------------------------------------
+	swiDelay(1330);
+}
+
+//---------------------------------------------------------------------------------
+static void sdmmc_clkdelay1() {
+//---------------------------------------------------------------------------------
+	// 4200 works, 3150 fails, 3675 fails in exit to menu reload
+	swiDelay(4000);
+}
+
+//---------------------------------------------------------------------------------
+static void sdmmc_clkdelay() {
+//---------------------------------------------------------------------------------
+	swiDelay(1330);
+}
+
+//---------------------------------------------------------------------------------
 int sdmmc_send_command(u16 cmd, u16 arg0, u16 arg1) {
 //---------------------------------------------------------------------------------
 	u16 is_stat0, was_stat0;
@@ -89,8 +108,7 @@ void sdmmc_send_acmd41(u32 arg, u32 *resp) {
 
 	sdmmc_send_command(41, (u16)arg, (arg>>16));
 
-	while( (REG_DISPSTAT & DISPSTAT_CHK_VBLANK) == 0 );
-	while( (REG_DISPSTAT & DISPSTAT_CHK_VBLANK) != 0 );
+	sdmmc_clkdelay1();
 	
 	*resp = sdmmc_read16(REG_SDRESP0) | (sdmmc_read16(REG_SDRESP1)<<16);
 }
@@ -226,19 +244,6 @@ int sdmmc_sdcard_init() {
 	return 0;
 }
 
-
-//---------------------------------------------------------------------------------
-void sdmmc_clkdelay0() {
-//---------------------------------------------------------------------------------
-	swiDelay(1330);
-}
-
-//---------------------------------------------------------------------------------
-void sdmmc_clkdelay() {
-//---------------------------------------------------------------------------------
-	swiDelay(1330);
-}
-
 //---------------------------------------------------------------------------------
 void sdmmc_sdcard_readsector(u32 sector_no, void *out) {
 //---------------------------------------------------------------------------------
@@ -266,8 +271,7 @@ void sdmmc_sdcard_readsector(u32 sector_no, void *out) {
 
 	resp0 = sdmmc_read16(REG_SDSTATUS1);
 	
-	while( (REG_DISPSTAT & DISPSTAT_CHK_VBLANK) == 0 );
-	while( (REG_DISPSTAT & DISPSTAT_CHK_VBLANK) != 0 );
+	sdmmc_clkdelay1();
 
 	sdmmc_mask16(REG_SDSTATUS1, 1, 0);
 	
@@ -308,8 +312,7 @@ bool sdmmc_readsectors(u32 sector_no, u32 numsectors, void *out) {
 
 	resp0 = sdmmc_read16(REG_SDSTATUS1);
 	
-	while( (REG_DISPSTAT & DISPSTAT_CHK_VBLANK) == 0 );
-	while( (REG_DISPSTAT & DISPSTAT_CHK_VBLANK) != 0 );
+	sdmmc_clkdelay1();
 
 	sdmmc_mask16(REG_SDSTATUS1, 1, 0);
 	
