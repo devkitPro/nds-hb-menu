@@ -10,8 +10,8 @@ endif
 include $(DEVKITARM)/ds_rules
 
 export HBMENU_MAJOR	:= 0
-export HBMENU_MINOR	:= 1
-export HBMENU_PATCH	:= 1
+export HBMENU_MINOR	:= 2
+export HBMENU_PATCH	:= 0
 
 
 VERSION	:=	$(HBMENU_MAJOR).$(HBMENU_MINOR).$(HBMENU_PATCH)
@@ -120,7 +120,7 @@ all:	bootloader bootstub BootStrap $(BUILD)
 dist:	all
 	@rm	-fr	hbmenu
 	@mkdir hbmenu
-	@cp hbmenu.nds hbmenu/_BOOT_DS.NDS
+	@cp hbmenu.nds hbmenu/BOOT.NDS
 	@cp BootStrap/TTMENU.DAT BootStrap/_DS_MENU.DAT BootStrap/ez5sys.bin BootStrap/akmenu4.nds hbmenu
 	@cp README.html COPYING hbmenu
 	@zip -9r hbmenu-$(VERSION).zip hbmenu
