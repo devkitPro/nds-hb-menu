@@ -57,8 +57,7 @@ int main(int argc, char **argv) {
 	// set up our bitmap background
 	bgInit(3, BgType_Bmp16, BgSize_B16_256x256, 0,0);
 	
-	//decompress(hbmenu_bannerBitmap, BG_GFX,  LZ77Vram);
-	dmaCopy(hbmenu_bannerBitmap, BG_GFX, hbmenu_bannerBitmapLen);
+	decompress(hbmenu_bannerBitmap, BG_GFX,  LZ77Vram);
 
 	// Subscreen as a console
 	videoSetModeSub(MODE_0_2D);
