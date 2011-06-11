@@ -25,6 +25,11 @@
 #include "dldi_patcher.h"
 #include "dldi_startup_patch.h"
 
+// enable code to bypass startup function
+// Some DLDI drivers work fine when reinitialised others don't
+// Still need to check which ones and why
+#define ENABLE_STARTUP_PATCH
+
 #define FIX_ALL	0x01
 #define FIX_GLUE	0x02
 #define FIX_GOT	0x04
@@ -97,8 +102,8 @@ static const data_t dldiMagicLoaderString[] = "\xEE\xA5\x8D\xBF Chishm";	// Diff
 
 extern const u32 _io_dldi;
 
-bool dldiPatchBinary (data_t *binData, u32 binSize)
-{
+bool dldiPatchBinary (data_t *binData, u32 binSize) {
+
 	addr_t memOffset;			// Offset of DLDI after the file is loaded into memory
 	addr_t patchOffset;			// Position of patch destination in the file
 	addr_t relocationOffset;	// Value added to all offsets within the patch to fix it properly
@@ -107,8 +112,10 @@ bool dldiPatchBinary (data_t *binData, u32 binSize)
 	addr_t ddmemEnd;			// End of range that offsets can be in the DLDI file
 	addr_t ddmemSize;			// Size of range that offsets can be in the DLDI file
 
+#ifdef ENABLE_STARTUP_PATCH
 	addr_t startupFunction;		// Startup function called by loaded NDS
-	
+#endif
+
 	addr_t addrIter;
 
 	data_t *pDH;
@@ -203,8 +210,10 @@ bool dldiPatchBinary (data_t *binData, u32 binSize)
 	}
 
 	// Effectively disable the startup function, since the disc is already initialised
+#ifdef ENABLE_STARTUP_PATCH
 	startupFunction = readAddr (pAH, DO_startup);
 	memcpy ((data_t*)startupFunction, dldi_startup_patch, sizeof (dldi_startup_patch));
+#endif
 
 /*
 Don't zero BSS. The driver is already initialised, so it probably has important data in the BSS
