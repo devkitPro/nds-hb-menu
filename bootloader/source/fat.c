@@ -414,7 +414,7 @@ u32 getBootFileCluster (const char* bootName)
 	int firstSector = 0;
 	bool notFound = false;
 	bool found = false;
-	int maxSectors;
+//	int maxSectors;
 	u32 wrkDirCluster = discRootDirClus;
 	u32 wrkDirSector = 0;
 	int wrkDirOffset = 0;
@@ -434,7 +434,7 @@ u32 getBootFileCluster (const char* bootName)
 	while (*ptr != '.') ptr++;
 	int namelen = ptr - bootName;
 
-	maxSectors = (wrkDirCluster == FAT16_ROOT_DIR_CLUSTER ? (discData - discRootDir) : discSecPerClus);
+//	maxSectors = (wrkDirCluster == FAT16_ROOT_DIR_CLUSTER ? (discData - discRootDir) : discSecPerClus);
 	// Scan Dir for correct entry
 	firstSector = discRootDir;
 	CARD_ReadSector (firstSector + wrkDirSector, globalBuffer);
@@ -525,6 +525,7 @@ u32 fileRead (char* buffer, u32 cluster, u32 startOffset, u32 length)
 
 	// Load sector buffer for new position in file
 	CARD_ReadSector( curSect + FAT_ClustToSect(cluster), globalBuffer);
+	curSect++;
 
 	// Number of bytes needed to read to align with a sector
 	beginBytes = (BYTES_PER_SECTOR < length + curByte ? (BYTES_PER_SECTOR - curByte) : length);
@@ -536,17 +537,28 @@ u32 fileRead (char* buffer, u32 cluster, u32 startOffset, u32 length)
 	}
 
 	// Read in all the 512 byte chunks of the file directly, saving time
-	for ( chunks = ((int)length - beginBytes) / BYTES_PER_SECTOR; chunks > 0; chunks--)
+	for ( chunks = ((int)length - beginBytes) / BYTES_PER_SECTOR; chunks > 0;)
 	{
-		curSect++;
 		if (curSect >= discSecPerClus)
 		{
 			curSect = 0;
 			cluster = FAT_NextCluster (cluster);
 		}
 
-		CARD_ReadSector( curSect + FAT_ClustToSect( cluster), buffer + dataPos);
-		dataPos += BYTES_PER_SECTOR;
+		if(curSect == 0 && chunks > discSecPerClus)
+		{
+			CARD_ReadSectors(FAT_ClustToSect(cluster), discSecPerClus, buffer + dataPos);
+			chunks  -= discSecPerClus;
+			curSect += discSecPerClus;
+			dataPos += BYTES_PER_SECTOR * discSecPerClus;
+		}
+		else
+		{
+			CARD_ReadSector( curSect + FAT_ClustToSect( cluster), buffer + dataPos);
+			chunks  -= 1;
+			curSect += 1;
+			dataPos += BYTES_PER_SECTOR;
+		}
 	}
 
 	// Take care of any bytes left over before end of read
@@ -554,7 +566,6 @@ u32 fileRead (char* buffer, u32 cluster, u32 startOffset, u32 length)
 	{
 
 		// Update the read buffer
-		curSect++;
 		curByte = 0;
 		if (curSect >= discSecPerClus)
 		{
