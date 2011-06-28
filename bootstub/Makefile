@@ -6,7 +6,7 @@ TARGET	:=	bootstub
 	arm-eabi-objcopy -O binary $< $@
 
 $(TARGET).elf: $(TARGET).s Makefile	
-	arm-eabi-gcc -Ttext=0 -x assembler-with-cpp -nostartfiles -nostdlib $(TARGET).s -o $@
+	arm-eabi-gcc -Wl,-Ttext=0 -x assembler-with-cpp -nostartfiles -nostdlib $(TARGET).s -o $@
 
 
 clean:
