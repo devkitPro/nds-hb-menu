@@ -53,7 +53,8 @@ Helpful information:
 #include "boot.h"
 
 void arm7clearRAM();
-bool sdmmc_readsectors(u32 sector_no, u32 numsectors, void *out);
+int sdmmc_sdcard_readsectors(u32 sector_no, u32 numsectors, void *out);
+int sdmmc_sdcard_init();
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Important things
@@ -249,7 +250,11 @@ bool sdmmc_inserted() {
 }
 
 bool sdmmc_startup() {
-	return true;
+	return sdmmc_sdcard_init() == 0;
+}
+
+bool sdmmc_readsectors(u32 sector_no, u32 numsectors, void *out) {
+	return sdmmc_sdcard_readsectors(sector_no, numsectors, out) == 0;
 }
 
 int main (void) {
