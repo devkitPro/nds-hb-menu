@@ -89,9 +89,6 @@ void sdmmc_send_acmd41(u32 arg, u32 *resp) {
 	*resp = sdmmc_read16(REG_SDRESP0) | (sdmmc_read16(REG_SDRESP1)<<16);
 
 	sdmmc_send_command(41, (u16)arg, (arg>>16));
-
-	while( (REG_DISPSTAT & DISP_IN_VBLANK) == 0 );
-	while( (REG_DISPSTAT & DISP_IN_VBLANK) != 0 );
 	
 	*resp = sdmmc_read16(REG_SDRESP0) | (sdmmc_read16(REG_SDRESP1)<<16);
 }
