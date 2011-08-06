@@ -37,6 +37,27 @@
 #define INIT_DISC (*(((u32*)LCDC_BANK_C) + 2))
 #define WANT_TO_PATCH_DLDI (*(((u32*)LCDC_BANK_C) + 3))
 
+
+/*
+	b	startUp
+	
+storedFileCluster:
+	.word	0x0FFFFFFF		@ default BOOT.NDS
+initDisc:
+	.word	0x00000001		@ init the disc by default
+wantToPatchDLDI:
+	.word	0x00000001		@ by default patch the DLDI section of the loaded NDS
+@ Used for passing arguments to the loaded app
+argStart:
+	.word	_end - _start
+argSize:
+	.word	0x00000000
+dldiOffset:
+	.word	_dldi_start - _start
+dsiSD:
+	.word	0
+*/
+
 #define STORED_FILE_CLUSTER_OFFSET 4 
 #define INIT_DISC_OFFSET 8
 #define WANT_TO_PATCH_DLDI_OFFSET 12
