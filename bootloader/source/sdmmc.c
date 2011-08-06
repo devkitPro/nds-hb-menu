@@ -90,8 +90,8 @@ void sdmmc_send_acmd41(u32 arg, u32 *resp) {
 
 	sdmmc_send_command(41, (u16)arg, (arg>>16));
 
-	while( (REG_DISPSTAT & DISPSTAT_CHK_VBLANK) == 0 );
-	while( (REG_DISPSTAT & DISPSTAT_CHK_VBLANK) != 0 );
+	while( (REG_DISPSTAT & DISP_IN_VBLANK) == 0 );
+	while( (REG_DISPSTAT & DISP_IN_VBLANK) != 0 );
 	
 	*resp = sdmmc_read16(REG_SDRESP0) | (sdmmc_read16(REG_SDRESP1)<<16);
 }
@@ -339,103 +339,3 @@ int sdmmc_sdcard_readsectors(u32 sector_no, u32 numsectors, void *out) {
 
 	return 0;
 }
-
-//---------------------------------------------------------------------------------
-// This writing code is broken.
-// Clk randomly dies, causing this code to hang.
-// This has the potential to kill the FS if it hangs while writing FAT metadata etc, 
-// do not enable this unless you know what you're doing!
-//---------------------------------------------------------------------------------
-#ifdef ENABLEWR
-//---------------------------------------------------------------------------------
-int sdmmc_sdcard_writesector(u32 sector_no, void *in) {
-//---------------------------------------------------------------------------------
-	u16 *in16 = (u16*)in;
-	u16 resp0, resp1;
-	int i;
-
-	if(!sdmmc_sdhc)sector_no *= 512;
-
-	sdmmc_clkdelay0();
-	sdmmc_mask16(REG_SDCLKCTL, 0, 0x100);
-	sdmmc_clkdelay();
-	sdmmc_write16(REG_SDBLKLEN, 0x200);	
-	
-	// CMD24 - write single block
-	sdmmc_send_command(24, sector_no & 0xffff, (sector_no >> 16));
-	if(sdmmc_timeout) {
-		sdmmc_clkdelay1();
-		sdmmc_clkdelay0();
-		sdmmc_mask16(REG_SDCLKCTL, 0x100, 0);
-		return 1;
-	}
-
-	resp0 = sdmmc_read16(REG_SDRESP0);
-	resp1 = sdmmc_read16(REG_SDRESP1);	
-
-	resp0 = sdmmc_read16(REG_SDSTATUS1);
-
-	while (!(sdmmc_read16(REG_SDSTATUS1) & 0x200));
-
-	resp0 = sdmmc_read16(REG_SDSTATUS1);
-
-	sdmmc_clkdelay1();
-
-	sdmmc_mask16(REG_SDSTATUS1, 1, 0);
-	
-	for(i = 0; i < 0x100; i++) {
-		sdmmc_write16(REG_SDFIFO, in16[i]);
-	}
-
-	sdmmc_clkdelay0();
-	sdmmc_mask16(REG_SDCLKCTL, 0x100, 0);
-
-	return 0;
-}
-
-//---------------------------------------------------------------------------------
-int sdmmc_sdcard_writesectors(u32 sector_no, int numsectors, void *in) {
-//---------------------------------------------------------------------------------
-	u16 *in16 = (u16*)in;
-	u16 resp0, resp1;
-	int i;
-
-	if(!sdmmc_sdhc)
-		sector_no *= 512;
-
-	sdmmc_write16(REG_SDSTOP, 0x100);
-	sdmmc_write16(REG_SDBLKCOUNT, numsectors);
-	sdmmc_mask16(REG_SDCLKCTL, 0, 0x100);
-	sdmmc_clkdelay();
-	sdmmc_write16(REG_SDBLKLEN, 0x200);	
-	
-	// CMD25 - write multiple blocks
-	sdmmc_send_command(25, sector_no & 0xffff, (sector_no >> 16));
-	if(sdmmc_timeout) {
-		sdmmc_clkdelay1();
-		sdmmc_clkdelay0();
-		sdmmc_mask16(REG_SDCLKCTL, 0x100, 0);
-		return 1;
-	}
-
-	resp0 = sdmmc_read16(REG_SDRESP0);
-	resp1 = sdmmc_read16(REG_SDRESP1);	
-	resp0 = sdmmc_read16(REG_SDSTATUS1);
-
-	while (!(sdmmc_read16(REG_SDSTATUS1) & 0x200));
-
-	resp0 = sdmmc_read16(REG_SDSTATUS1);
-	
-	sdmmc_mask16(REG_SDSTATUS1, 1, 0);
-	
-	for(i = 0; i < 0x100*numsectors; i++) {
-		sdmmc_write16(REG_SDFIFO, in16[i]);
-	}
-
-	sdmmc_clkdelay0();
-	sdmmc_mask16(REG_SDCLKCTL, 0x100, 0);
-
-	return 0;
-}
-#endif
-
