@@ -28,7 +28,7 @@
 // enable code to bypass startup function
 // Some DLDI drivers work fine when reinitialised others don't
 // Still need to check which ones and why
-#define ENABLE_STARTUP_PATCH
+//#define ENABLE_STARTUP_PATCH
 
 #define FIX_ALL	0x01
 #define FIX_GLUE	0x02
@@ -213,15 +213,12 @@ bool dldiPatchBinary (data_t *binData, u32 binSize) {
 #ifdef ENABLE_STARTUP_PATCH
 	startupFunction = readAddr (pAH, DO_startup);
 	memcpy ((data_t*)startupFunction, dldi_startup_patch, sizeof (dldi_startup_patch));
-#endif
-
-/*
-Don't zero BSS. The driver is already initialised, so it probably has important data in the BSS
+#else
 	if (pDH[DO_fixSections] & FIX_BSS) { 
 		// Initialise the BSS to 0
 		memset (&pAH[readAddr(pDH, DO_bss_start) - ddmemStart] , 0, readAddr(pDH, DO_bss_end) - readAddr(pDH, DO_bss_start));
 	}
-*/
+#endif
 
 	return true;
 }
