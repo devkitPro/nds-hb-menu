@@ -55,6 +55,7 @@ Helpful information:
 void arm7clearRAM();
 int sdmmc_sdcard_readsectors(u32 sector_no, u32 numsectors, void *out);
 int sdmmc_sdcard_init();
+void sdmmc_controller_init();
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Important things
@@ -250,6 +251,7 @@ bool sdmmc_inserted() {
 }
 
 bool sdmmc_startup() {
+	sdmmc_controller_init();
 	return sdmmc_sdcard_init() == 0;
 }
 
