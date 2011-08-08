@@ -245,7 +245,7 @@ void sdmmc_clkdelay() {
 }
 
 //---------------------------------------------------------------------------------
-int sdmmc_sdcard_readsector(u32 sector_no, void *out) {
+int sdmmc_sd_readsector(u32 sector_no, void *out) {
 //---------------------------------------------------------------------------------
 	u16 *out16 = (u16*)out;
 	u16 resp0, resp1;
@@ -291,7 +291,7 @@ int sdmmc_sdcard_readsector(u32 sector_no, void *out) {
 }
 
 //---------------------------------------------------------------------------------
-int sdmmc_sdcard_readsectors(u32 sector_no, u32 numsectors, void *out) {
+int sdmmc_sd_readsectors(u32 sector_no, u32 numsectors, void *out) {
 //---------------------------------------------------------------------------------
 	u16 *out16 = (u16*)out;
 	u16 resp0, resp1;

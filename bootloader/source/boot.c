@@ -243,7 +243,7 @@ void startBinary_ARM7 (void) {
 	arm7code();
 }
 
-
+int sdmmc_sd_readsectors(u32 sector_no, u32 numsectors, void *out);
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Main function
 bool sdmmc_inserted() {
@@ -256,7 +256,7 @@ bool sdmmc_startup() {
 }
 
 bool sdmmc_readsectors(u32 sector_no, u32 numsectors, void *out) {
-	return sdmmc_sdcard_readsectors(sector_no, numsectors, out) == 0;
+	return sdmmc_sd_readsectors(sector_no, numsectors, out) == 0;
 }
 
 int main (void) {
