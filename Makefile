@@ -10,7 +10,7 @@ endif
 include $(DEVKITARM)/ds_rules
 
 export HBMENU_MAJOR	:= 0
-export HBMENU_MINOR	:= 2
+export HBMENU_MINOR	:= 3
 export HBMENU_PATCH	:= 0
 
 
