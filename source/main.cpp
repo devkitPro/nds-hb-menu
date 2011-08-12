@@ -31,8 +31,11 @@
 
 #include "hbmenu_banner.h"
 
-void stop (void) 
-{
+using namespace std;
+
+//---------------------------------------------------------------------------------
+void stop (void) {
+//---------------------------------------------------------------------------------
 	while (1) {
 		swiWaitForVBlank();
 	}
@@ -46,7 +49,6 @@ int main(int argc, char **argv) {
 	extern u64 *fake_heap_end;
 	*fake_heap_end = 0;
 
-	const char* argarray[2];
 	char filePath[MAXPATHLEN * 2];
 	int pathLen;
 	std::string filename;
@@ -64,30 +66,77 @@ int main(int argc, char **argv) {
 	vramSetBankH(VRAM_H_SUB_BG);
 	consoleInit(NULL, 0, BgType_Text4bpp, BgSize_T_256x256, 15, 0, false, true);
 
-	iprintf ("Init'ing FAT...");
-	if (fatInitDefault()) {
-		iprintf ("okay\n");
-	} else {
-		iprintf ("fail!\n");
+	if (!fatInitDefault()) {
+		iprintf ("fatinitDefault failed!\n");
 		stop();
 	} 
 
 	keysSetRepeat(25,5);
-
-	filename = browseForFile (".nds");
-
-	// Construct a command line if we weren't supplied with one
-	getcwd (filePath, MAXPATHLEN);
-	pathLen = strlen (filePath);
-	strcpy (filePath + pathLen, filename.c_str());
-	argarray[0] = filePath;
-
-	iprintf ("Running %s\n", argarray[0]);
-	int err = runNdsFile (argarray[0], 1, argarray);
 	
-	iprintf ("Start failed. Error %i\n", err);
+	vector<string> extensionList;
+	extensionList.push_back(".nds");
+	extensionList.push_back(".argv");
+
+	while(1) {
 	
-	stop();
+		filename = browseForFile(extensionList);
+
+		// Construct a command line
+		getcwd (filePath, MAXPATHLEN);
+		pathLen = strlen (filePath);
+		vector<char*> argarray;
+
+		if ( strcasecmp (filename.c_str() + filename.size() - 5, ".argv") == 0) {
+
+			FILE *argfile = fopen(filename.c_str(),"rb");
+			char str[MAXPATHLEN], *pstr;
+			const char seps[]= "\n\r\t ";
+
+			while( !feof(argfile) ) {
+				fgets(str, MAXPATHLEN, argfile);
+				// Find comment and end string there
+				if( (pstr = strchr(str, '#')) )
+					*pstr= '\0';
+		
+				// Tokenize arguments
+				pstr= strtok(str, seps);
+
+				while( pstr != NULL ) {
+					argarray.push_back(strdup(pstr));
+					pstr= strtok(NULL, seps);
+				}
+			}
+			fclose(argfile);
+			filename = argarray.at(0);
+		} else {
+			argarray.push_back(strdup(filename.c_str()));
+		} 
+
+		if ( strcasecmp (filename.c_str() + filename.size() - 4, ".nds") != 0 ) {
+			iprintf("Don't know how to run %s\n", filename.c_str());
+		} else {
+			char *name = argarray.at(0);
+			strcpy (filePath + pathLen, name);
+			free(argarray.at(0));
+			argarray.at(0) = filePath;
+			iprintf ("Running %s with %d parameters\n", argarray[0], argarray.size());
+			int err = runNdsFile (argarray[0], argarray.size(), (const char **)&argarray[0]);
+			iprintf ("Start failed. Error %i\n", err);
+
+		}
+
+		while(argarray.size() !=0 ) {
+			free(argarray.at(0));
+			argarray.erase(argarray.begin());
+		}
+
+		while (1) {
+			swiWaitForVBlank();
+			scanKeys();
+			if (keysUp() & KEY_A) break;
+		}
+
+	}
 
 	return 0;
 }

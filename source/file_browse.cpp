@@ -41,13 +41,17 @@ struct DirEntry {
 	bool isDirectory;
 } ;
 
-bool nameEndsWith (const string& name, const string& extension) {
+bool nameEndsWith (const string& name, const vector<string> extensionList) {
 
-	if (name.size() == 0 || name.size() < extension.size() || extension.size() == 0) {
-		return false;
+	if (name.size() == 0) return false;
+
+	if (extensionList.size() == 0) return true;
+
+	for (int i = 0; i < (int)extensionList.size(); i++) {
+		const string ext = extensionList.at(i);
+		if ( strcasecmp (name.c_str() + name.size() - ext.size(), ext.c_str()) == 0) return true;
 	}
-	
-	return strcasecmp (name.c_str() + name.size() - extension.size(), extension.c_str()) == 0;
+	return false;
 }
 
 bool dirEntryPredicate (const DirEntry& lhs, const DirEntry& rhs) {
@@ -61,7 +65,7 @@ bool dirEntryPredicate (const DirEntry& lhs, const DirEntry& rhs) {
 	return strcasecmp(lhs.name.c_str(), rhs.name.c_str()) < 0;
 }
 
-void getDirectoryContents (vector<DirEntry>& dirContents, const string& extension) {
+void getDirectoryContents (vector<DirEntry>& dirContents, const vector<string> extensionList) {
 	struct stat st;
 
 	dirContents.clear();
@@ -82,7 +86,7 @@ void getDirectoryContents (vector<DirEntry>& dirContents, const string& extensio
 			dirEntry.name = pent->d_name;
 			dirEntry.isDirectory = (st.st_mode & S_IFDIR) ? true : false;
 
-			if (dirEntry.name.compare(".") != 0 && (dirEntry.isDirectory || nameEndsWith(dirEntry.name, extension))) {
+			if (dirEntry.name.compare(".") != 0 && (dirEntry.isDirectory || nameEndsWith(dirEntry.name, extensionList))) {
 				dirContents.push_back (dirEntry);
 			}
 
@@ -95,7 +99,8 @@ void getDirectoryContents (vector<DirEntry>& dirContents, const string& extensio
 }
 
 void getDirectoryContents (vector<DirEntry>& dirContents) {
-	getDirectoryContents (dirContents, "");
+	vector<string> extensionList;
+	getDirectoryContents (dirContents, extensionList);
 }
 
 void showDirectoryContents (const vector<DirEntry>& dirContents, int startRow) {
@@ -139,13 +144,13 @@ void showDirectoryContents (const vector<DirEntry>& dirContents, int startRow) {
 	}
 }
 
-string browseForFile (const string& extension) {
+string browseForFile (const vector<string> extensionList) {
 	int pressed = 0;
 	int screenOffset = 0;
 	int fileOffset = 0;
 	vector<DirEntry> dirContents;
 	
-	getDirectoryContents (dirContents, extension);
+	getDirectoryContents (dirContents, extensionList);
 	showDirectoryContents (dirContents, screenOffset);
 	
 	while (true) {
@@ -184,9 +189,10 @@ string browseForFile (const string& extension) {
 		if (pressed & KEY_A) {
 			DirEntry* entry = &dirContents.at(fileOffset);
 			if (entry->isDirectory) {
+				iprintf("Entering directory\n");
 				// Enter selected directory
 				chdir (entry->name.c_str());
-				getDirectoryContents (dirContents, extension);
+				getDirectoryContents (dirContents, extensionList);
 				screenOffset = 0;
 				fileOffset = 0;
 				showDirectoryContents (dirContents, screenOffset);
@@ -201,7 +207,7 @@ string browseForFile (const string& extension) {
 		if (pressed & KEY_B) {
 			// Go up a directory
 			chdir ("..");
-			getDirectoryContents (dirContents, extension);
+			getDirectoryContents (dirContents, extensionList);
 			screenOffset = 0;
 			fileOffset = 0;
 			showDirectoryContents (dirContents, screenOffset);

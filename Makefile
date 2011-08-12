@@ -10,7 +10,7 @@ endif
 include $(DEVKITARM)/ds_rules
 
 export HBMENU_MAJOR	:= 0
-export HBMENU_MINOR	:= 3
+export HBMENU_MINOR	:= 4
 export HBMENU_PATCH	:= 0
 
 
@@ -115,7 +115,7 @@ endif
  
 .PHONY: bootloader bootstub BootStrap $(BUILD) clean
 
-all:	bootloader bootstub BootStrap $(BUILD)
+all:	bootloader bootstub $(BUILD) BootStrap
 	
 dist:	all
 	@rm	-fr	hbmenu

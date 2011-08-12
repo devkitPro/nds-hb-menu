@@ -23,8 +23,9 @@
 #define FILE_BROWSE_H
 
 #include <string>
+#include <vector>
 
-std::string browseForFile (const std::string& extension);
+std::string browseForFile (const std::vector<std::string> extensionList);
 
 
 
