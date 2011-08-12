@@ -112,8 +112,8 @@ int main(int argc, char **argv) {
 			argarray.push_back(strdup(filename.c_str()));
 		} 
 
-		if ( strcasecmp (filename.c_str() + filename.size() - 4, ".nds") != 0 ) {
-			iprintf("Don't know how to run %s\n", filename.c_str());
+		if ( strcasecmp (filename.c_str() + filename.size() - 4, ".nds") != 0 || argarray.size() == 0 ) {
+			iprintf("no nds file specified\n");
 		} else {
 			char *name = argarray.at(0);
 			strcpy (filePath + pathLen, name);
@@ -133,7 +133,7 @@ int main(int argc, char **argv) {
 		while (1) {
 			swiWaitForVBlank();
 			scanKeys();
-			if (keysUp() & KEY_A) break;
+			if (!(keysHeld() & KEY_A)) break;
 		}
 
 	}
