@@ -11,7 +11,7 @@ include $(DEVKITARM)/ds_rules
 
 export HBMENU_MAJOR	:= 0
 export HBMENU_MINOR	:= 4
-export HBMENU_PATCH	:= 0
+export HBMENU_PATCH	:= 1
 
 
 VERSION	:=	$(HBMENU_MAJOR).$(HBMENU_MINOR).$(HBMENU_PATCH)
