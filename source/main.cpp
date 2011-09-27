@@ -92,9 +92,7 @@ int main(int argc, char **argv) {
 			char str[MAXPATHLEN], *pstr;
 			const char seps[]= "\n\r\t ";
 
-			while( !feof(argfile) ) {
-				char *result = fgets(str, MAXPATHLEN, argfile);
-				if (NULL == result) break;
+			while( fgets(str, MAXPATHLEN, argfile) ) {
 				// Find comment and end string there
 				if( (pstr = strchr(str, '#')) )
 					*pstr= '\0';
