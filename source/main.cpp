@@ -93,7 +93,8 @@ int main(int argc, char **argv) {
 			const char seps[]= "\n\r\t ";
 
 			while( !feof(argfile) ) {
-				fgets(str, MAXPATHLEN, argfile);
+				char *result = fgets(str, MAXPATHLEN, argfile);
+				if (NULL == result) break;
 				// Find comment and end string there
 				if( (pstr = strchr(str, '#')) )
 					*pstr= '\0';
