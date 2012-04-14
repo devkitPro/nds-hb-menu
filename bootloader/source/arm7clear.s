@@ -22,7 +22,7 @@
 
 	.arm
 	.global arm7clearRAM
-
+	.type	arm7clearRAM STT_FUNC
 arm7clearRAM:
 
 	push	{r0-r9}
