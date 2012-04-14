@@ -1,5 +1,6 @@
 *.DAT
 *.NDS
+*.nds
 *.elf
 *.bin
 bootloader/build

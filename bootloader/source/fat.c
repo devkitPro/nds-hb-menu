@@ -539,26 +539,25 @@ u32 fileRead (char* buffer, u32 cluster, u32 startOffset, u32 length)
 	// Read in all the 512 byte chunks of the file directly, saving time
 	for ( chunks = ((int)length - beginBytes) / BYTES_PER_SECTOR; chunks > 0;)
 	{
+		int sectorsToRead;
+
+		// Move to the next cluster if necessary
 		if (curSect >= discSecPerClus)
 		{
 			curSect = 0;
 			cluster = FAT_NextCluster (cluster);
 		}
 
-		if(curSect == 0 && chunks > discSecPerClus)
-		{
-			CARD_ReadSectors(FAT_ClustToSect(cluster), discSecPerClus, buffer + dataPos);
-			chunks  -= discSecPerClus;
-			curSect += discSecPerClus;
-			dataPos += BYTES_PER_SECTOR * discSecPerClus;
-		}
-		else
-		{
-			CARD_ReadSector( curSect + FAT_ClustToSect( cluster), buffer + dataPos);
-			chunks  -= 1;
-			curSect += 1;
-			dataPos += BYTES_PER_SECTOR;
-		}
+		// Calculate how many sectors to read (read a maximum of discSecPerClus at a time)
+		sectorsToRead = discSecPerClus - curSect;
+		if(chunks < sectorsToRead)
+			sectorsToRead = chunks;
+
+		// Read the sectors
+		CARD_ReadSectors(curSect + FAT_ClustToSect(cluster), sectorsToRead, buffer + dataPos);
+		chunks  -= sectorsToRead;
+		curSect += sectorsToRead;
+		dataPos += BYTES_PER_SECTOR * sectorsToRead;
 	}
 
 	// Take care of any bytes left over before end of read
