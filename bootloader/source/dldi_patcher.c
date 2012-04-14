@@ -23,12 +23,6 @@
 #include <string.h>
 #include <nds.h>
 #include "dldi_patcher.h"
-#include "dldi_startup_patch.h"
-
-// enable code to bypass startup function
-// Some DLDI drivers work fine when reinitialised others don't
-// Still need to check which ones and why
-//#define ENABLE_STARTUP_PATCH
 
 #define FIX_ALL	0x01
 #define FIX_GLUE	0x02
@@ -111,11 +105,6 @@ bool dldiPatchBinary (data_t *binData, u32 binSize) {
 	addr_t ddmemStart;			// Start of range that offsets can be in the DLDI file
 	addr_t ddmemEnd;			// End of range that offsets can be in the DLDI file
 	addr_t ddmemSize;			// Size of range that offsets can be in the DLDI file
-
-#ifdef ENABLE_STARTUP_PATCH
-	addr_t startupFunction;		// Startup function called by loaded NDS
-#endif
-
 	addr_t addrIter;
 
 	data_t *pDH;
@@ -209,16 +198,10 @@ bool dldiPatchBinary (data_t *binData, u32 binSize) {
 		}
 	}
 
-	// Effectively disable the startup function, since the disc is already initialised
-#ifdef ENABLE_STARTUP_PATCH
-	startupFunction = readAddr (pAH, DO_startup);
-	memcpy ((data_t*)startupFunction, dldi_startup_patch, sizeof (dldi_startup_patch));
-#else
 	if (pDH[DO_fixSections] & FIX_BSS) { 
 		// Initialise the BSS to 0
 		memset (&pAH[readAddr(pDH, DO_bss_start) - ddmemStart] , 0, readAddr(pDH, DO_bss_end) - readAddr(pDH, DO_bss_start));
 	}
-#endif
 
 	return true;
 }
