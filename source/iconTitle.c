@@ -129,6 +129,7 @@ void iconTitleInit (void) {
 	Sprites.oamBuffer[0].attribute[2]=0;
 
 	// update OAM
+	DC_FlushRange(&Sprites,sizeof(OAMTable));
 	dmaCopy (&Sprites, OAM, sizeof(OAMTable));
 
 	// set video mode and activate BG2 (affine), BG3 (bitmap) and sprites
