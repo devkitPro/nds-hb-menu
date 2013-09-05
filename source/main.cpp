@@ -1,7 +1,8 @@
 /*-----------------------------------------------------------------
- Copyright (C) 2005 - 2010
+ Copyright (C) 2005 - 2013
 	Michael "Chishm" Chisholm
 	Dave "WinterMute" Murphy
+	Claudio "sverx"
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -31,6 +32,8 @@
 
 #include "hbmenu_banner.h"
 
+#include "iconTitle.h"
+
 using namespace std;
 
 //---------------------------------------------------------------------------------
@@ -53,13 +56,7 @@ int main(int argc, char **argv) {
 	int pathLen;
 	std::string filename;
 
-	videoSetMode(MODE_5_2D);
-	vramSetBankA(VRAM_A_MAIN_BG);
-
-	// set up our bitmap background
-	bgInit(3, BgType_Bmp16, BgSize_B16_256x256, 0,0);
-	
-	decompress(hbmenu_bannerBitmap, BG_GFX,  LZ77Vram);
+	iconTitleInit();
 
 	// Subscreen as a console
 	videoSetModeSub(MODE_0_2D);
@@ -69,7 +66,7 @@ int main(int argc, char **argv) {
 	if (!fatInitDefault()) {
 		iprintf ("fatinitDefault failed!\n");
 		stop();
-	} 
+	}
 
 	keysSetRepeat(25,5);
 	

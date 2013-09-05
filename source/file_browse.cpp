@@ -1,7 +1,8 @@
 /*-----------------------------------------------------------------
- Copyright (C) 2005 - 2010
+ Copyright (C) 2005 - 2013
 	Michael "Chishm" Chisholm
 	Dave "WinterMute" Murphy
+	Claudio "sverx"
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -28,6 +29,8 @@
 #include <dirent.h>
 
 #include <nds.h>
+
+#include "iconTitle.h"
 
 #define SCREEN_COLS 32
 #define ENTRIES_PER_SCREEN 22
@@ -160,7 +163,9 @@ string browseForFile (const vector<string> extensionList) {
 		}
 		// Show cursor
 		iprintf ("\x1b[%d;0H*", fileOffset - screenOffset + ENTRIES_START_ROW);
-		
+
+		iconTitleUpdate (dirContents.at(fileOffset).isDirectory,dirContents.at(fileOffset).name.c_str());
+
 		// Power saving loop. Only poll the keys once per frame and sleep the CPU if there is nothing else to do
 		do {
 			scanKeys();
