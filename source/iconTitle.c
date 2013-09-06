@@ -3,6 +3,7 @@
 	Michael "Chishm" Chisholm
 	Dave "WinterMute" Murphy
 	Claudio "sverx"
+	Michael "mtheall" Theall
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -22,6 +23,8 @@
 
 #include <nds.h>
 #include <stdio.h>
+#include <ctype.h>
+#include <sys/stat.h>
 
 #include "hbmenu_banner.h"
 #include "font6x8.h"
@@ -34,120 +37,105 @@
 
 #define TEXT_WIDTH	((32-4)*8/6)
 
-#define buf_SIZE	0x440
-#define ICON_OFFS	0x20
-#define PAL_OFFS	0x220
-#define TITLE_OFFS	0x340
+static int bg2, bg3;
+static u16 *sprite;
+static tNDSBanner banner;
 
-OAMTable Sprites;
+static inline void writecharRS (int row, int col, u16 car) {
+	// get map pointer
+	u16 *gfx   = bgGetMapPtr(bg2);
+	// get old pair of values from VRAM
+	u16 oldval = gfx[row*(512/8/2)+(col/2)];
 
-void writecharRS (int row, int col, u16 car) {
-	u16 oldval=BG_GFX[row*(512/8/2)+(col/2)];
-	oldval&=(col%2)?0xFF:0xFF00;
-	oldval|=(col%2)?(car<<8):car;
-	BG_GFX[row*(512/8/2)+col/2]=oldval;
+	// clear the half we will update
+	oldval &= (col%2) ? 0x00FF : 0xFF00;
+	// apply the updated half
+	oldval |= (col%2) ? (car<<8) : car;
+
+	// write back to VRAM
+	gfx[row*(512/8/2)+col/2] = oldval;
 }
 
-void writeRow (int rownum, const char* text) {
+static inline void writeRow (int rownum, const char* text) {
 	int i,len,p=0;
 	len=strlen(text);
 
-	if (len>TEXT_WIDTH) len=TEXT_WIDTH;
+	if (len>TEXT_WIDTH)
+		len=TEXT_WIDTH;
+
+	// clear left part
 	for (i=0;i<(TEXT_WIDTH-len)/2;i++)
 		writecharRS (rownum, i, 0);
+
+	// write centered text
 	for (i=(TEXT_WIDTH-len)/2;i<((TEXT_WIDTH-len)/2+len);i++)
 		writecharRS (rownum, i, text[p++]-' ');
+
+	// clear right part
 	for (i=((TEXT_WIDTH-len)/2+len);i<TEXT_WIDTH;i++)
 		writecharRS (rownum, i, 0);
 }
 
-void clearIcon (void) {
-	int zero=0;
-	// zero out the first bytes of SPRITE_GFX
-	swiFastCopy(&zero, SPRITE_GFX, (32*32/2/4)|COPY_MODE_WORD|COPY_MODE_FILL);
+static inline void clearIcon (void) {
+	dmaFillHalfWords(0, sprite, sizeof(banner.icon));
 }
 
 void iconTitleInit (void) {
+	// initialize video mode
+	videoSetMode(MODE_4_2D);
 
-	int i,zero=0;
+	// initialize VRAM banks
+	vramSetPrimaryBanks(VRAM_A_MAIN_BG,
+	                    VRAM_B_MAIN_SPRITE,
+	                    VRAM_C_LCD,
+	                    VRAM_D_LCD);
 
-	// set bank A and D for background memory (128K+128K)
-	vramSetBankA(VRAM_A_MAIN_BG);
-	vramSetBankD(VRAM_D_MAIN_BG_0x06020000);
+	// initialize bg2 as a rotation background and bg3 as a bmp background
+	// http://mtheall.com/vram.html#T2=3&RNT2=96&MB2=3&TB2=0&S2=2&T3=6&MB3=1&S3=1
+	bg2 = bgInit(2, BgType_Rotation, BgSize_R_512x512,   3, 0);
+	bg3 = bgInit(3, BgType_Bmp16,    BgSize_B16_256x256, 1, 0);
 
-	// define BG3 to use second half of BG_GFX instead of 1st half (offset 8x16k)
-	bgInit(3, BgType_Bmp16, BgSize_B16_256x256, 8,0);
+	// initialize rotate, scale, and scroll
+	bgSetRotateScale(bg3, 0, 1<<8, 1<<8);
+	bgSetScroll(bg3, 0, 0);
+	bgSetRotateScale(bg2, 0, 8*(1<<8)/6, 1<<8);
+	bgSetScroll(bg2, -TITLE_POS_X, -TITLE_POS_Y);
 
-	// set the BG3 scaling 1:1
-	REG_BG3PA=1<<8;
-	REG_BG3PB=0;
-	REG_BG3PC=0;
-	REG_BG3PD=1<<8;
+	// clear bg2's map: 512x512 pixels is 64x64 tiles is 4KB
+	dmaFillHalfWords(0, bgGetMapPtr(bg2), 4096);
+	// load compressed font into bg2's tile data
+	decompress(font6x8Tiles, bgGetGfxPtr(bg2), LZ77Vram);
 
-	// set the BG3 scroll at 0,0
-	REG_BG3X=0;
-	REG_BG3Y=0;
-
-	// load compressed bitmap
-	decompress(hbmenu_bannerBitmap, &BG_GFX[(128*1024/2)], LZ77Vram);
-
-	// zero out the first 128KB of BG_GFX
-	swiFastCopy(&zero, BG_GFX, (128*1024/4)|COPY_MODE_WORD|COPY_MODE_FILL);
-
-	// set up BG2 for title/info (MAP:0 tiles:1)
-	bgInit(2, BgType_Rotation, BgSize_R_512x512, 0, 1);
-
-	// set the BG scaling (8 to 6 horizontal scaling)
-	REG_BG2PA=(8<<8)/6;
-	REG_BG2PB=0;
-	REG_BG2PC=0;
-	REG_BG2PD=1<<8;
-
-	// set the background upper/left corner to the place where title/info will be written
-	REG_BG2X=-TITLE_POS_X<<8;
-	REG_BG2Y=-TITLE_POS_Y<<8;
-
-	// load font (compressed to save some bytes...)
-	decompress(font6x8Tiles, &BG_GFX[(16*1024/2)], LZ77Vram);
+	// load compressed bitmap into bg3
+	decompress(hbmenu_bannerBitmap, bgGetGfxPtr(bg3), LZ77Vram);
 
 	// load font palette
-	swiFastCopy(font6x8Pal, BG_PALETTE, (16*2/4)|COPY_MODE_WORD);
+	dmaCopy(font6x8Pal, BG_PALETTE, font6x8PalLen);
 
-	// set bank B for MAIN sprite
-	vramSetBankB(VRAM_B_MAIN_SPRITE_0x06400000);
+	// apply the bg changes
+	bgUpdate();
 
-	// disable all the sprites
-	for (i=1;i<128;i++) {
-		Sprites.oamBuffer[i].attribute[0]=ATTR0_DISABLED|OBJ_Y(192);  // out of screen
-		Sprites.oamBuffer[i].attribute[1]=ATTR1_SIZE_8|OBJ_X(256);    // out of screen
-		Sprites.oamBuffer[i].attribute[2]=0;
-	}
+	// initialize OAM
+	oamInit(&oamMain, SpriteMapping_1D_128, false);
+	sprite = oamAllocateGfx(&oamMain, SpriteSize_32x32, SpriteColorFormat_16Color);
+	dmaFillHalfWords(0, sprite, sizeof(banner.icon));
+	oamSet(&oamMain, 0, ICON_POS_X, ICON_POS_Y, 0, 0,
+	       SpriteSize_32x32, SpriteColorFormat_16Color, sprite,
+	       -1, 0, 0, 0, 0, 0);
 
-	// configure sprite #0
-	Sprites.oamBuffer[0].attribute[0]=ATTR0_NORMAL|OBJ_Y(ICON_POS_Y);
-	Sprites.oamBuffer[0].attribute[1]=ATTR1_SIZE_32|OBJ_X(ICON_POS_X);
-	Sprites.oamBuffer[0].attribute[2]=0;
-
-	// update OAM
-	DC_FlushRange(&Sprites,sizeof(OAMTable));
-	dmaCopy (&Sprites, OAM, sizeof(OAMTable));
-
-	// set video mode and activate BG2 (affine), BG3 (bitmap) and sprites
-	videoSetMode (MODE_4_2D|DISPLAY_BG2_ACTIVE|DISPLAY_BG3_ACTIVE
-												 |DISPLAY_SPR_ACTIVE|DISPLAY_SPR_1D);
+	// oam can only be updated during vblank
+	swiWaitForVBlank();
+	oamUpdate(&oamMain);
 
 	// everything's ready :)
-
 	writeRow (0,"...initializing...");
 	writeRow (1,"===>>> HBMenu+ <<<===");
 	writeRow (2,"(this text should disappear...");
 	writeRow (3,"...otherwise, trouble!)");
-
 }
 
 
 void iconTitleUpdate (int isdir, const char* name) {
-
 	writeRow (0,name);
 	writeRow (1,"");
 	writeRow (2,"");
@@ -158,12 +146,75 @@ void iconTitleUpdate (int isdir, const char* name) {
 		writeRow (2,"[directory]");
 		// icon
 		clearIcon();
-	} else {
+	} else if(strlen(name) >= 5 && strcasecmp(name + strlen(name) - 5, ".argv") == 0) {
+		// look through the argv file for the corresponding nds file
+		FILE    *fp;
+		char    *line = NULL, *p = NULL;
+		size_t  size = 0;
+		ssize_t rc;
 
+		// open the argv file
+		fp = fopen(name,"rb");
+		if(fp == NULL) {
+			writeRow(2, "(can't open file!)");
+			clearIcon();
+			fclose(fp); return;
+		}
+
+		// read each line
+		while((rc = __getline(&line, &size, fp)) > 0) {
+			// remove comments
+			if((p = strchr(line, '#')) != NULL)
+				*p = 0;
+
+			// skip leading whitespace
+			for(p = line; *p && isspace((int)*p); ++p)
+			  ;
+
+			if(*p)
+				break;
+		}
+
+		// done with the file at this point
+		fclose(fp);
+
+		if(p && *p) {
+			// we found an argument
+			struct stat st;
+
+			// truncate everything after first argument
+			strtok(p, "\n\r\t ");
+
+			if(strlen(p) < 4 || strcasecmp(p + strlen(p) - 4, ".nds") != 0) {
+				// this is not an nds file!
+				writeRow(2, "(invalid argv file!)");
+				clearIcon();
+			} else {
+				// let's see if this is a file or directory
+				rc = stat(p, &st);
+				if(rc != 0) {
+					// stat failed
+					writeRow(2, "(can't find argument!)");
+					clearIcon();
+				} else if(S_ISDIR(st.st_mode)) {
+					// this is a directory!
+					writeRow(2, "(invalid argv file!)");
+					clearIcon();
+				} else {
+					iconTitleUpdate(false, p);
+				}
+			}
+		} else {
+			writeRow(2, "(no argument!)");
+			clearIcon();
+		}
+		// clean up the allocated line
+		free(line);
+	} else {
+		// this is an nds file!
 		FILE *fp;
 		unsigned int Icon_title_offset;
 		int ret;
-		char buf[buf_SIZE];  // the read buffer
 
 		// open file for reading info
 		fp=fopen (name,"rb");
@@ -175,7 +226,7 @@ void iconTitleUpdate (int isdir, const char* name) {
 			fclose (fp); return;
 		}
 
-		ret=fseek (fp,0x68,SEEK_SET);
+		ret=fseek (fp, offsetof(tNDSHeader, bannerOffset), SEEK_SET);
 		if (ret==0)
 			ret=fread (&Icon_title_offset, sizeof(int), 1, fp); // read if seek succeed
 		else
@@ -199,7 +250,7 @@ void iconTitleUpdate (int isdir, const char* name) {
 
 		ret=fseek (fp,Icon_title_offset,SEEK_SET);
 		if (ret==0)
-			ret=fread (&buf, buf_SIZE, 1, fp); // read if seek succeed
+			ret=fread (&banner, sizeof(banner), 1, fp); // read if seek succeed
 		else
 			ret=0;  // if seek fails set to !=1
 
@@ -216,23 +267,24 @@ void iconTitleUpdate (int isdir, const char* name) {
 
 		// turn unicode into ascii (kind of)
 		// and convert 0x0A into 0x00
-		int i,len,len2;
-		for (i=0;i<0x100;i=i+2) {
-			if ((buf[TITLE_OFFS+i]==0x0A) || (buf[TITLE_OFFS+i]==0xFF))
-				buf[TITLE_OFFS+(i/2)]=0;
+		int i;
+		char *p = (char*)banner.titles[0];
+		for (i = 0; i < sizeof(banner.titles[0]); i = i+2) {
+			if ((p[i] == 0x0A) || (p[i] == 0xFF))
+				p[i/2] = 0;
 			else
-				buf[TITLE_OFFS+(i/2)]=buf[TITLE_OFFS+i];
+				p[i/2] = p[i];
 		}
 
 		// text
-		writeRow (1,&buf[TITLE_OFFS]);
-		len=strlen(&buf[TITLE_OFFS]);
-		writeRow (2,&buf[TITLE_OFFS+len+1]);
-		len2=strlen(&buf[TITLE_OFFS+len+1]);
-		writeRow (3,&buf[TITLE_OFFS+len+len2+1+1]);
+		for(i = 0; i < 3; ++i) {
+			writeRow (i+1, p);
+			p += strlen(p)+1;
+		}
+
 		// icon
-		swiFastCopy(&buf[ICON_OFFS], SPRITE_GFX, (32*32/2/4)|COPY_MODE_WORD);
-		swiFastCopy(&buf[PAL_OFFS], SPRITE_PALETTE, (16*2/4)|COPY_MODE_WORD);
+		DC_FlushAll();
+		dmaCopy(banner.icon,    sprite,         sizeof(banner.icon));
+		dmaCopy(banner.palette, SPRITE_PALETTE, sizeof(banner.palette));
 	}
 }
-
