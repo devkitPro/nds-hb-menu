@@ -22,6 +22,8 @@
 #include <nds.h>
 #include <nds/arm9/dldi.h>
 #include <sys/stat.h>
+#include <sys/param.h>
+
 #include <unistd.h>
 #include <fat.h>
 
