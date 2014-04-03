@@ -3,6 +3,7 @@
 *.nds
 *.elf
 *.bin
+*.bz2
 bootloader/build
 BootStrap/arm7/build
 BootStrap/arm9/build
