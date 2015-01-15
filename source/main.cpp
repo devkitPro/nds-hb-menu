@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <fat.h>
 #include <sys/stat.h>
-#include <sys/param.h>
+#include <limits.h>
 
 #include <string.h>
 #include <unistd.h>
@@ -45,6 +45,8 @@ void stop (void) {
 	}
 }
 
+char filePath[PATH_MAX];
+
 //---------------------------------------------------------------------------------
 int main(int argc, char **argv) {
 //---------------------------------------------------------------------------------
@@ -53,7 +55,8 @@ int main(int argc, char **argv) {
 	extern u64 *fake_heap_end;
 	*fake_heap_end = 0;
 
-	char filePath[MAXPATHLEN * 2];
+	defaultExceptionHandler();
+
 	int pathLen;
 	std::string filename;
 
@@ -70,31 +73,31 @@ int main(int argc, char **argv) {
 	}
 
 	keysSetRepeat(25,5);
-	
+
 	vector<string> extensionList;
 	extensionList.push_back(".nds");
 	extensionList.push_back(".argv");
 
 	while(1) {
-	
+
 		filename = browseForFile(extensionList);
 
 		// Construct a command line
-		getcwd (filePath, MAXPATHLEN);
+		getcwd (filePath, PATH_MAX);
 		pathLen = strlen (filePath);
 		vector<char*> argarray;
 
 		if ( strcasecmp (filename.c_str() + filename.size() - 5, ".argv") == 0) {
 
 			FILE *argfile = fopen(filename.c_str(),"rb");
-			char str[MAXPATHLEN], *pstr;
+			char str[PATH_MAX], *pstr;
 			const char seps[]= "\n\r\t ";
 
-			while( fgets(str, MAXPATHLEN, argfile) ) {
+			while( fgets(str, PATH_MAX, argfile) ) {
 				// Find comment and end string there
 				if( (pstr = strchr(str, '#')) )
 					*pstr= '\0';
-		
+
 				// Tokenize arguments
 				pstr= strtok(str, seps);
 
@@ -107,7 +110,7 @@ int main(int argc, char **argv) {
 			filename = argarray.at(0);
 		} else {
 			argarray.push_back(strdup(filename.c_str()));
-		} 
+		}
 
 		if ( strcasecmp (filename.c_str() + filename.size() - 4, ".nds") != 0 || argarray.size() == 0 ) {
 			iprintf("no nds file specified\n");
