@@ -22,7 +22,7 @@
 #include <nds.h>
 #include <nds/arm9/dldi.h>
 #include <sys/stat.h>
-#include <sys/param.h>
+#include <limits.h>
 
 #include <unistd.h>
 #include <fat.h>
@@ -350,7 +350,7 @@ int runNds (const void* loader, u32 loaderSize, u32 cluster, bool initDisc, bool
 
 int runNdsFile (const char* filename, int argc, const char** argv)  {
 	struct stat st;
-	char filePath[MAXPATHLEN * 2];
+	char filePath[PATH_MAX];
 	int pathLen;
 	const char* args[1];
 
@@ -361,7 +361,7 @@ int runNdsFile (const char* filename, int argc, const char** argv)  {
 
 	if (argc <= 0 || !argv) {
 		// Construct a command line if we weren't supplied with one
-		if (!getcwd (filePath, MAXPATHLEN)) {
+		if (!getcwd (filePath, PATH_MAX)) {
 			return 2;
 		}
 		pathLen = strlen (filePath);
