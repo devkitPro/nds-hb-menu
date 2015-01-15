@@ -1,12 +1,12 @@
-export	PATH	:=	$(DEVKITARM)/bin:$(PATH)
+include $(DEVKITARM)/base_tools
 
 TARGET	:=	bootstub
-	
-../data/$(TARGET).bin: $(TARGET).elf
-	arm-none-eabi-objcopy -O binary $< $@
 
-$(TARGET).elf: $(TARGET).s Makefile	
-	arm-none-eabi-gcc -Wl,-Ttext=0 -x assembler-with-cpp -nostartfiles -nostdlib $(TARGET).s -o $@
+../data/$(TARGET).bin: $(TARGET).elf
+	$(OBJCOPY) -O binary $< $@
+
+$(TARGET).elf: $(TARGET).s Makefile
+	$(CC) -Wl,-Ttext=0 -x assembler-with-cpp -nostartfiles -nostdlib $(TARGET).s -o $@
 
 
 clean:
