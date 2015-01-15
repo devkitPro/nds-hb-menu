@@ -36,7 +36,7 @@
 _start:
 @---------------------------------------------------------------------------------
 	b	startUp
-	
+
 storedFileCluster:
 	.word	0x0FFFFFFF		@ default BOOT.NDS
 initDisc:
@@ -54,8 +54,11 @@ dsiSD:
 	.word	0
 
 startUp:
-	mov	r0, #0x04000000		@ IME = 0;
-	strb	r0, [r0,#0x208]
+	mov	r0, #0x04000000
+	mov	r1, #0
+	str	r1, [r0,#0x208]		@ REG_IME
+	str	r1, [r0,#0x210]		@ REG_IE
+	str	r1, [r0,#0x218]		@ REG_AUXIE
 
 	mov	r0, #0x12		@ Switch to IRQ Mode
 	msr	cpsr, r0
@@ -78,7 +81,7 @@ startUp:
 	mov	r1, #0			@ char *argv[]
 	ldr	r3, =main
 	bl	_blx_r3_stub		@ jump to user code
-		
+
 	@ If the user ever returns, restart
 	b	_start
 
