@@ -122,7 +122,7 @@ dist:	all
 	@mkdir hbmenu
 	@cp hbmenu.nds hbmenu/BOOT.NDS
 	@cp BootStrap/_BOOT_MP.NDS BootStrap/TTMENU.DAT BootStrap/_DS_MENU.DAT BootStrap/ez5sys.bin BootStrap/akmenu4.nds hbmenu
-	@tar -cvjf hbmenu-$(VERSION).tar.bz2 hbmenu testfiles README.html COPYING hbmenu -X exclude.lst
+	@tar -cvjf hbmenu-$(VERSION).tar.bz2 hbmenu testfiles README.html COPYING -X exclude.lst
 
 #---------------------------------------------------------------------------------
 $(BUILD):
