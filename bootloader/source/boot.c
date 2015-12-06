@@ -256,7 +256,7 @@ bool sdmmc_startup() {
 }
 
 bool sdmmc_readsectors(u32 sector_no, u32 numsectors, void *out) {
-	return sdmmc_sd_readsectors(sector_no, numsectors, out) == 0;
+	return sdmmc_sdcard_readsectors(sector_no, numsectors, out) == 0;
 }
 
 int main (void) {
