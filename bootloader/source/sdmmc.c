@@ -35,6 +35,7 @@ void __attribute__((noinline)) setTarget(struct mmcdevice *ctx) {
 //---------------------------------------------------------------------------------
 void __attribute__((noinline)) sdmmc_send_command(struct mmcdevice *ctx, u32 cmd, u32 args) {
 //---------------------------------------------------------------------------------
+    int i;
     bool getSDRESP = (cmd << 15) >> 31;
     u16 flags = (cmd << 15) >> 31;
     const bool readdata = cmd & 0x20000;
@@ -84,11 +85,11 @@ void __attribute__((noinline)) sdmmc_send_command(struct mmcdevice *ctx, u32 cmd
                 if (size > 0x1FF) {
 #ifdef DATA32_SUPPORT
                     if (useBuf32) {
-                        for(int i = 0; i<0x200; i+=4)
+                        for(i = 0; i<0x200; i+=4)
                             *dataPtr32++ = sdmmc_read32(REG_SDFIFO32);
                     } else {
 #endif
-                        for(int i = 0; i<0x200; i+=2)
+                        for(i = 0; i<0x200; i+=2)
                             *dataPtr++ = sdmmc_read16(REG_SDFIFO);
 #ifdef DATA32_SUPPORT
                     }
@@ -104,10 +105,10 @@ void __attribute__((noinline)) sdmmc_send_command(struct mmcdevice *ctx, u32 cmd
                 //sdmmc_write16(REG_SDSTATUS1,~TMIO_STAT1_TXRQ);
                 if (size > 0x1FF) {
 #ifdef DATA32_SUPPORT
-                    for (int i = 0; i<0x200; i+=4)
+                    for (i = 0; i<0x200; i+=4)
                         sdmmc_write32(REG_SDFIFO32,*dataPtr32++);
 #else
-                    for (int i = 0; i<0x200; i+=2)
+                    for (i = 0; i<0x200; i+=2)
                         sdmmc_write16(REG_SDFIFO,*dataPtr++);
 #endif
                     size -= 0x200;
