@@ -126,6 +126,11 @@ void passArgs_ARM7 (void) {
 	u32* argDst;
 	
 	if (!argStart || !argSize) return;
+
+	if ( ARM9_DST == 0 && ARM9_LEN == 0) {
+		ARM9_DST = *((u32*)(NDS_HEAD + 0x038));
+		ARM9_LEN = *((u32*)(NDS_HEAD + 0x03C));
+	}
 	
 	argSrc = (u32*)(argStart + (int)&_start);
 	
