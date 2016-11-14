@@ -30,7 +30,7 @@ CFLAGS	:=	-g -Wall -Os\
 
 CFLAGS	+=	$(INCLUDE) -DARM7
 
-ASFLAGS	:=	-g $(ARCH)
+ASFLAGS	:=	-g $(ARCH) $(INCLUDE)
 LDFLAGS	=	-nostartfiles -T $(TOPDIR)/load.ld -g $(ARCH) -Wl,-Map,$(TARGET).map
 
 LIBS	:= 
@@ -105,11 +105,17 @@ $(LOADBIN)	:	$(LOADELF)
 	@echo built ... $(notdir $@)
 
 
-$(LOADELF)	:	$(OFILES)
+$(LOADELF)	: $(OFILES)
 	@echo linking $(notdir $@)
 	@$(LD)  $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
- 
 
+arm9mpu_reset.o: mpu_reset.bin
+
+mpu_reset.bin: mpu_reset.elf
+	$(OBJCOPY) -O binary $< $@
+
+mpu_reset.elf: $(TOPDIR)/arm9code/mpu_reset.s
+	$(CC) $(ASFLAGS) -Ttext=0 -x assembler-with-cpp -nostartfiles -nostdlib $< -o $@
 
 -include $(DEPENDS)
 #---------------------------------------------------------------------------------------

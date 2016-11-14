@@ -264,6 +264,9 @@ bool sdmmc_readsectors(u32 sector_no, u32 numsectors, void *out) {
 	return sdmmc_sdcard_readsectors(sector_no, numsectors, out) == 0;
 }
 
+void mpu_reset();
+void mpu_reset_end();
+
 int main (void) {
 	if (dsiSD) {
 		_io_dldi.fn_readSectors = sdmmc_readsectors;
@@ -289,6 +292,13 @@ int main (void) {
 	// ARM9 clears its memory part 2
 	// copy ARM9 function to RAM, and make the ARM9 jump to it
 	copyLoop((void*)TEMP_MEM, (void*)resetMemory2_ARM9, resetMemory2_ARM9_size);
+	(*(vu32*)0x02FFFE24) = (u32)TEMP_MEM;	// Make ARM9 jump to the function
+	// Wait until the ARM9 has completed its task
+	while ((*(vu32*)0x02FFFE24) == (u32)TEMP_MEM);
+
+	// ARM9 sets up mpu
+	// copy ARM9 function to RAM, and make the ARM9 jump to it
+	copyLoop((void*)TEMP_MEM, (void*)mpu_reset, mpu_reset_end - mpu_reset);
 	(*(vu32*)0x02FFFE24) = (u32)TEMP_MEM;	// Make ARM9 jump to the function
 	// Wait until the ARM9 has completed its task
 	while ((*(vu32*)0x02FFFE24) == (u32)TEMP_MEM);
