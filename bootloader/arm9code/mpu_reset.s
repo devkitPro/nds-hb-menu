@@ -32,24 +32,6 @@
 @---------------------------------------------------------------------------------
 _start:
 @---------------------------------------------------------------------------------
-	mrs	r0, cpsr			@ cpu interrupt disable
-	orr	r0, r0, #0x80			@ (set i flag)
-	msr	cpsr, r0
-
-	adr	r1, itcm_reset_code
-	mov	r2, #0
-	adr	r3, itcm_reset_code_end
-
-copy_itcm_reset:
-	ldmia	r1!, {r0}
-	stmia	r2!, {r0}
-	cmp	r1, r3
-	bne	copy_itcm_reset
-
-	mov	r0, #0
-	bx	r0
-
-itcm_reset_code:
 	@ Switch off MPU
 	mrc	p15, 0, r0, c1, c0, 0
 	bic	r0, r0, #PROTECT_ENABLE
@@ -99,18 +81,17 @@ itcm_reset_code:
 	msr	cpsr_c, #0xdf      @ system mode
 	mov	sp, r0
 
-	ldr	r10, =0x2FFFE04
-	ldr	r0, =0xE59FF018
-	str	r0, [r10]
-	add	r1, r10, #0x20
-	str	r10, [r1]
-
-	@ Switch MPU back on
+	@ enable cache & tcm
 	mrc	p15, 0, r0, c1, c0, 0
 	ldr	r1,= ITCM_ENABLE | DTCM_ENABLE | ICACHE_ENABLE | DCACHE_ENABLE
 	orr	r0,r0,r1
 	mcr	p15, 0, r0, c1, c0, 0
 
+	ldr	r10, =0x2FFFE04
+	ldr	r0, =0xE59FF018
+	str	r0, [r10]
+	add	r1, r10, #0x20
+	str	r10, [r1]
 	bx	r10
 
 	.pool
@@ -127,4 +108,3 @@ mpu_initial_data:
 	.word 0xffff001d  @ p15,0,c6,c6,0,r8    ;PU Protection Unit Data/Unified Region 6
 	.word 0x02fff017  @ p15,0,c6,c7,0,r9    ;PU Protection Unit Data/Unified Region 7 4KB
 	.word 0x0300000a  @ p15,0,c9,c1,0,r10   ;TCM Data TCM Base and Virtual Size
-itcm_reset_code_end:
