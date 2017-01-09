@@ -35,7 +35,7 @@ CXXFLAGS	:=	$(CFLAGS) -fno-rtti -fno-exceptions
 
 ASFLAGS	:=	-g $(ARCH) -march=armv5te -mtune=arm946e-s
 
-LDFLAGS	=	-specs=ds_arm9.specs -g $(ARCH) -Wl,-Map,$(TARGET).map -Wl,--section-start,.init=0x02000450,--nmagic
+LDFLAGS	=	-specs=ds_arm9.specs -g $(ARCH) -Wl,-Map,$(TARGET).map -Wl,--section-start,.crt0=0x02000450,--nmagic
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project

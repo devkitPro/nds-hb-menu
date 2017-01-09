@@ -17,6 +17,7 @@
  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 ------------------------------------------------------------------*/
+const int __secure_area__ = 0;
 
 #include <nds.h>
 #include <fat.h>
