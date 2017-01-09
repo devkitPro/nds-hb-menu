@@ -42,7 +42,7 @@ _BOOT_MP.NDS	:	$(TARGET).nds
 
 #---------------------------------------------------------------------------------
 $(TARGET).nds	:	$(TARGET).arm7.elf $(TARGET).arm9.elf
-	ndstool	-c $(TARGET).nds -7 $(TARGET).arm7.elf -9 $(TARGET).arm9.elf
+	ndstool	-h 0x200 -c $(TARGET).nds -7 $(TARGET).arm7.elf -9 $(TARGET).arm9.elf
 
 #---------------------------------------------------------------------------------
 $(TARGET).arm7.elf:
