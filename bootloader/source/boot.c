@@ -59,7 +59,8 @@ void sdmmc_controller_init();
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Important things
-#define TEMP_MEM 0x02FFE000
+#define TEMP_MEM 0x02FFD000
+#define TWL_HEAD 0x02FFE000
 #define NDS_HEAD 0x02FFFE00
 #define TEMP_ARM9_START_ADDRESS (*(vu32*)0x02FFFFF4)
 
@@ -73,6 +74,7 @@ extern unsigned long wantToPatchDLDI;
 extern unsigned long argStart;
 extern unsigned long argSize;
 extern unsigned long dsiSD;
+extern unsigned long dsiMode;
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Firmware stuff
@@ -136,6 +138,18 @@ void passArgs_ARM7 (void) {
 	
 	argDst = (u32*)((ARM9_DST + ARM9_LEN + 3) & ~3);		// Word aligned 
 	
+	if (dsiMode && (*(u8*)(NDS_HEAD + 0x012) & BIT(1)))
+	{
+		u32 ARM9i_DST = *((u32*)(TWL_HEAD + 0x1C8));
+		u32 ARM9i_LEN = *((u32*)(TWL_HEAD + 0x1CC));
+		if (ARM9i_LEN)
+		{
+			u32* argDst2 = (u32*)((ARM9i_DST + ARM9i_LEN + 3) & ~3);		// Word aligned
+			if (argDst2 > argDst)
+				argDst = argDst2;
+		}
+	}
+
 	copyLoop(argDst, argSrc, argSize);
 	
 	__system_argv->argvMagic = ARGV_MAGIC;
@@ -227,6 +241,24 @@ void loadBinary_ARM7 (u32 fileCluster)
 	TEMP_ARM9_START_ADDRESS = ndsHeader[0x024>>2];		// Store for later
 	ndsHeader[0x024>>2] = 0;
 	dmaCopyWords(3, (void*)ndsHeader, (void*)NDS_HEAD, 0x170);
+
+	if (dsiMode && (ndsHeader[0x10>>2]&BIT(16+1)))
+	{
+		// Read full TWL header
+		fileRead((char*)TWL_HEAD, fileCluster, 0, 0x1000);
+
+		u32 ARM9i_SRC = *(u32*)(TWL_HEAD+0x1C0);
+		char* ARM9i_DST = (char*)*(u32*)(TWL_HEAD+0x1C8);
+		u32 ARM9i_LEN = *(u32*)(TWL_HEAD+0x1CC);
+		u32 ARM7i_SRC = *(u32*)(TWL_HEAD+0x1D0);
+		char* ARM7i_DST = (char*)*(u32*)(TWL_HEAD+0x1D8);
+		u32 ARM7i_LEN = *(u32*)(TWL_HEAD+0x1DC);
+
+		if (ARM9i_LEN)
+			fileRead(ARM9i_DST, fileCluster, ARM9i_SRC, ARM9i_LEN);
+		if (ARM7i_LEN)
+			fileRead(ARM7i_DST, fileCluster, ARM7i_SRC, ARM7i_LEN);
+	}
 }
 
 /*-------------------------------------------------------------------------
