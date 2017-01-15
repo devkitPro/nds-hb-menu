@@ -35,7 +35,7 @@ CXXFLAGS	:=	$(CFLAGS) -fno-rtti -fno-exceptions
 
 ASFLAGS	:=	-g $(ARCH) -march=armv5te -mtune=arm946e-s
 
-LDFLAGS	=	-specs=ds_arm9.specs -g $(ARCH) -Wl,-Map,$(TARGET).map -Wl,--section-start,.crt0=0x02000450,--nmagic
+LDFLAGS	=	-specs=ds_arm9.specs -g $(ARCH) -Wl,-Map,$(TARGET).map
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
@@ -56,6 +56,7 @@ ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
  
 export ARM9ELF	:=	$(TOPDIR)/$(TARGET).arm9.elf
+export ARM9iELF	:=	$(TOPDIR)/$(TARGET).arm9i.elf
 export DEPSDIR := $(CURDIR)/$(BUILD)
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
@@ -114,7 +115,14 @@ else
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
+
+$(ARM9iELF) : $(ARM9ELF)
+
 $(ARM9ELF)	:	$(OFILES)
+	@echo linking $(notdir $@)
+	@$(LD)  -Wl,--defsym,__secure_area__=0 -Wl,--section-start,.crt0=0x02000450,--nmagic $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
+
+$(ARM9iELF)	:	$(OFILES)
 	@echo linking $(notdir $@)
 	@$(LD)  $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
 
