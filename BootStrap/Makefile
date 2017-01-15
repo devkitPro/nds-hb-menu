@@ -41,7 +41,7 @@ _BOOT_MP.NDS	:	$(TARGET).nds
 # CIA code to go here
 
 bootstrap_dsi.nds : $(TARGET).arm7.elf $(TARGET).arm9i.elf
-	ndstool -c $@ -7 $(TARGET).arm7.elf -9 $(TARGET).arm9i.elf
+	ndstool -u 00030004 -g HBLA -b bootstrap.bmp "nds-hb-menu bootstrap;built with devkitARM;http://devkitpro.org" -c $@ -7 $(TARGET).arm7.elf -9 $(TARGET).arm9i.elf
 
 
 
