@@ -78,6 +78,8 @@ int main(int argc, char **argv) {
 	extensionList.push_back(".nds");
 	extensionList.push_back(".argv");
 
+	chdir("/nds");
+
 	while(1) {
 
 		filename = browseForFile(extensionList);
