@@ -4,6 +4,8 @@
 *.elf
 *.bin
 *.bz2
+*.dsi
+*.cia
 bootloader/build
 BootStrap/arm7/build
 BootStrap/arm9/build
