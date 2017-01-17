@@ -16,7 +16,7 @@ export TOPDIR		:=	$(CURDIR)
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
-all: checkarm7 checkarm9 _DS_MENU.DAT ez5sys.bin akmenu4.nds TTMENU.DAT _BOOT_MP.NDS bootstrap_dsi.nds
+all: checkarm7 checkarm9 _DS_MENU.DAT ez5sys.bin akmenu4.nds TTMENU.DAT _BOOT_MP.NDS bootstrap.dsi
 
 _DS_MENU.DAT	:	$(TARGET).nds
 	@dlditool r4tfv2.dldi $<
@@ -40,10 +40,9 @@ _BOOT_MP.NDS	:	$(TARGET).nds
 
 # CIA code to go here
 
-bootstrap_dsi.nds : $(TARGET).arm7.elf $(TARGET).arm9i.elf
+#---------------------------------------------------------------------------------
+bootstrap.dsi : $(TARGET).arm7.elf $(TARGET).arm9i.elf
 	ndstool -u 00030004 -g HBLA -b bootstrap.bmp "nds-hb-menu bootstrap;built with devkitARM;http://devkitpro.org" -c $@ -7 $(TARGET).arm7.elf -9 $(TARGET).arm9i.elf
-
-
 
 #---------------------------------------------------------------------------------
 $(TARGET).nds	:	$(TARGET).arm7.elf $(TARGET).arm9.elf
@@ -69,5 +68,5 @@ clean:
 	$(MAKE) -C arm9 clean
 	$(MAKE) -C arm7 clean
 	rm -f $(TARGET).nds $(TARGET).arm7.elf $(TARGET).arm9.elf _DS_MENU.DAT ez5sys.bin akmenu4.nds TTMENU.DAT _BOOT_MP.NDS
-	rm -f bootstrap_dsi.nds $(TARGET).arm9i.elf
+	rm -f bootstrap.dsi $(TARGET).arm9i.elf
 
