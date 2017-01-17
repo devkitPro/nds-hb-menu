@@ -1,9 +1,13 @@
 # Homebrew Menu
 The Homebrew Menu is a simple launcher menu which can be used to replace the menu on several DS flashcards. This menu supports the argv protocol needed for devkitARM compiled applications to make use of nitrofs as well as providing a soft reset feature where applications can exit back to the menu. Exiting to the menu is as simple as returning from main() or calling exit(0).
 
-Currently the menu is a simple text based interface but we intend to improve this in the near future. Wintermute and Normmatt have discussed using the UI code from akaio for hbmenu and we hope to do this fairly soon.
+Currently the menu is a simple text based interface but we intend to improve this in the near future. 
 
 Installation on your card is a simple matter of copying BOOT.NDS and the appropriate bootstrap file from the hbmenu folder in this archive. At present we have bootstrap launchers for the original R4, ezflash 5, dstt and Acekard 2(i). Copying all the files will give you a single SD card which will boot the Homebrew Menu on all 4 cards.
+
+The bootstrap.cia file can be installed on a 3DS using FBI. This requires boot.nds on your SD card.
+
+Place your homebrew games in the /nds folder and have fun.
 
 The Homebrew Menu also supports passing arguments to launched .nds files via .argv files. The testfiles folder has an nds file which lists arguments and some sample .argv files. These are simple text files which start with the name of the nds file to run and a list of arguments to pass to the application. Here's a quick sample .argv file.
 ```shell
@@ -33,7 +37,7 @@ Note: While the GPL license allows you to distribute modified versions of this p
 The latest sources may be obtained from devkitPro git using the command: `git clone git@github.com:devkitPro/nds-hb-menu.git`
 
 ```
- Copyright (C) 2005 - 2011
+ Copyright (C) 2005 - 2017
 	Michael "Chishm" Chisholm
 	Dave "WinterMute" Murphy
 
