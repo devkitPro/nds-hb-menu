@@ -1,4 +1,5 @@
 *.DAT
+*.dat
 *.NDS
 *.nds
 *.elf
@@ -11,3 +12,4 @@ BootStrap/arm7/build
 BootStrap/arm9/build
 data
 build
+hbmenu
