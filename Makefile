@@ -11,7 +11,7 @@ include $(DEVKITARM)/ds_rules
 
 export HBMENU_MAJOR	:= 0
 export HBMENU_MINOR	:= 6
-export HBMENU_PATCH	:= 0
+export HBMENU_PATCH	:= 1
 
 
 VERSION	:=	$(HBMENU_MAJOR).$(HBMENU_MINOR).$(HBMENU_PATCH)
@@ -144,7 +144,7 @@ data:
 	@mkdir -p data
 
 bootloader: data
-	@$(MAKE) -C bootloader
+	@$(MAKE) -C bootloader LOADBIN=$(CURDIR)/data/load.bin
 
 bootstub: data
 	@$(MAKE) -C bootstub
