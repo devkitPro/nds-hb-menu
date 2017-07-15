@@ -38,6 +38,14 @@ _BOOT_MP.NDS	:	$(TARGET).nds
 	@cp $< $@
 	@dlditool mpcf.dldi $@
 
+#---------------------------------------------------------------------------------
+# Building separate .dsi and .nds binaries here is done purely to allow the .nds
+# binary to be used to replace various flashcart boot menus.
+#
+# This is *NOT* for general use, standard .nds files with a full header are DSi
+# hybrid binaries.
+#
+#---------------------------------------------------------------------------------
 bootstrap.cia: bootstrap.dsi
 	make_cia --srl=bootstrap.dsi
 
