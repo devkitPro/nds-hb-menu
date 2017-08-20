@@ -16,7 +16,7 @@ export TOPDIR		:=	$(CURDIR)
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
-all: checkarm7 checkarm9 _DS_MENU.DAT ez5sys.bin akmenu4.nds TTMENU.DAT _BOOT_MP.NDS bootstrap.cia
+all: checkarm7 checkarm9 ismat.dat _DS_MENU.DAT ez5sys.bin akmenu4.nds TTMENU.DAT _BOOT_MP.NDS bootstrap.cia
 
 _DS_MENU.DAT	:	$(TARGET).nds
 	@dlditool r4tfv2.dldi $<
@@ -37,6 +37,10 @@ TTMENU.DAT	:	$(TARGET).nds
 _BOOT_MP.NDS	:	$(TARGET).nds
 	@cp $< $@
 	@dlditool mpcf.dldi $@
+
+ismat.dat	:	$(TARGET).nds
+	@cp $< $@
+	@dlditool mati.dldi $@
 
 #---------------------------------------------------------------------------------
 # Building separate .dsi and .nds binaries here is done purely to allow the .nds
