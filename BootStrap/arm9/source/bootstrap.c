@@ -27,10 +27,11 @@
 
 int main( int argc, char **argv) {
 	consoleDemoInit();
+	iprintf("hbmenu bootstrap ...\n");
 	if (fatInitDefault()) {
 		runNdsFile("/BOOT.NDS", 0, NULL);
 	} else {
-		printf("FAT init failed!\n");
+		iprintf("FAT init failed!\n");
 	}
 	while(1) swiWaitForVBlank();
 }
