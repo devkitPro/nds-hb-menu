@@ -78,7 +78,7 @@ CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 PNGFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.png)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
-BINFILES	:=	load.bin bootstub.bin
+BINFILES	:=	load.bin bootstub.bin exceptionstub.bin
 
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
@@ -114,9 +114,9 @@ else
 	endif
 endif
 
-.PHONY: bootloader bootstub BootStrap $(BUILD) clean
+.PHONY: bootloader bootstub BootStrap exceptionstub $(BUILD) clean
 
-all:	bootloader bootstub $(BUILD) BootStrap
+all:	bootloader bootstub exceptionstub $(BUILD) BootStrap
 
 dist:	all
 	@rm	-fr	hbmenu
@@ -145,6 +145,9 @@ data:
 
 bootloader: data
 	@$(MAKE) -C bootloader LOADBIN=$(CURDIR)/data/load.bin
+
+exceptionstub: data
+	@$(MAKE) -C nds-exception-stub STUBBIN=$(CURDIR)/data/exceptionstub.bin
 
 bootstub: data
 	@$(MAKE) -C bootstub
