@@ -16,29 +16,29 @@ export TOPDIR		:=	$(CURDIR)
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
-all: checkarm7 checkarm9 ismat.dat _DS_MENU.DAT ez5sys.bin akmenu4.nds TTMENU.DAT _BOOT_MP.NDS bootstrap.cia
+all: checkarm7 checkarm9 _DS_MENU.DAT ismat.dat ez5sys.bin akmenu4.nds TTMENU.DAT _BOOT_MP.NDS bootstrap.cia
 
-_DS_MENU.DAT	:	$(TARGET).nds
+_DS_MENU.DAT	:	$(TARGET).nds r4tfv2.dldi
 	@dlditool r4tfv2.dldi $<
 	@r4denc $< $@
 
-ez5sys.bin	:	$(TARGET).nds
+ez5sys.bin	:	$(TARGET).nds EZ5V2.dldi
 	@cp $< $@
 	@dlditool EZ5V2.dldi $@
 
-akmenu4.nds	:	$(TARGET).nds
+akmenu4.nds	:	$(TARGET).nds  ak2_sd.dldi
 	@cp $< $@
 	@dlditool ak2_sd.dldi $@
 
-TTMENU.DAT	:	$(TARGET).nds
+TTMENU.DAT	:	$(TARGET).nds  TTCARDIOLibrary.dldi
 	@cp $< $@
 	@dlditool TTCARDIOLibrary.dldi $@
 
-_BOOT_MP.NDS	:	$(TARGET).nds
+_BOOT_MP.NDS	:	$(TARGET).nds mpcf.dldi
 	@cp $< $@
 	@dlditool mpcf.dldi $@
 
-ismat.dat	:	$(TARGET).nds
+ismat.dat	:	$(TARGET).nds mati.dldi
 	@cp $< $@
 	@dlditool mati.dldi $@
 
