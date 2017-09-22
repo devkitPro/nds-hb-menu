@@ -10,8 +10,8 @@ endif
 include $(DEVKITARM)/ds_rules
 
 export HBMENU_MAJOR	:= 0
-export HBMENU_MINOR	:= 6
-export HBMENU_PATCH	:= 1
+export HBMENU_MINOR	:= 7
+export HBMENU_PATCH	:= 0
 
 
 VERSION	:=	$(HBMENU_MAJOR).$(HBMENU_MINOR).$(HBMENU_PATCH)
@@ -139,6 +139,7 @@ clean:
 	@$(MAKE) -C bootloader clean
 	@$(MAKE) -C bootstub clean
 	@$(MAKE) -C BootStrap clean
+	@$(MAKE) -C nds-exception-stub clean
 
 data:
 	@mkdir -p data
