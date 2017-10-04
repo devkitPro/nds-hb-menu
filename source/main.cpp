@@ -51,6 +51,11 @@ char filePath[PATH_MAX];
 int main(int argc, char **argv) {
 //---------------------------------------------------------------------------------
 
+	// overwrite reboot stub identifier
+	// so tapping power on DSi returns to DSi menu
+	extern u64 *fake_heap_end;
+	*fake_heap_end = 0;
+
 	int pathLen;
 	std::string filename;
 
