@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------
- Copyright (C) 2005 - 2010
+ Copyright (C) 2005 - 2017
 	Michael "Chishm" Chisholm
 	Dave "WinterMute" Murphy
 
@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 
-std::string browseForFile (const std::vector<std::string> extensionList);
+std::string browseForFile (const std::vector<std::string>& extensionList);
 
 
 

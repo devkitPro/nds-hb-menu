@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------
- Copyright (C) 2005 - 2013
+ Copyright (C) 2005 - 2017
 	Michael "Chishm" Chisholm
 	Dave "WinterMute" Murphy
 	Claudio "sverx"
@@ -73,8 +73,8 @@ void getDirectoryContents (vector<DirEntry>& dirContents, const vector<string> e
 
 	dirContents.clear();
 
-	DIR *pdir = opendir ("."); 
-	
+	DIR *pdir = opendir (".");
+
 	if (pdir == NULL) {
 		iprintf ("Unable to open the directory.\n");
 	} else {
@@ -84,7 +84,7 @@ void getDirectoryContents (vector<DirEntry>& dirContents, const vector<string> e
 
 			struct dirent* pent = readdir(pdir);
 			if(pent == NULL) break;
-				
+
 			stat(pent->d_name, &st);
 			dirEntry.name = pent->d_name;
 			dirEntry.isDirectory = (st.st_mode & S_IFDIR) ? true : false;
@@ -94,10 +94,10 @@ void getDirectoryContents (vector<DirEntry>& dirContents, const vector<string> e
 			}
 
 		}
-		
+
 		closedir(pdir);
-	}	
-	
+	}
+
 	sort(dirContents.begin(), dirContents.end(), dirEntryPredicate);
 }
 
@@ -108,33 +108,33 @@ void getDirectoryContents (vector<DirEntry>& dirContents) {
 
 void showDirectoryContents (const vector<DirEntry>& dirContents, int startRow) {
 	char path[PATH_MAX];
-	
-	
+
+
 	getcwd(path, PATH_MAX);
-	
+
 	// Clear the screen
 	iprintf ("\x1b[2J");
-	
+
 	// Print the path
 	if (strlen(path) < SCREEN_COLS) {
 		iprintf ("%s", path);
 	} else {
 		iprintf ("%s", path + strlen(path) - SCREEN_COLS);
 	}
-	
+
 	// Move to 2nd row
 	iprintf ("\x1b[1;0H");
 	// Print line of dashes
 	iprintf ("--------------------------------");
-	
+
 	// Print directory listing
 	for (int i = 0; i < ((int)dirContents.size() - startRow) && i < ENTRIES_PER_SCREEN; i++) {
 		const DirEntry* entry = &dirContents.at(i + startRow);
 		char entryName[SCREEN_COLS + 1];
-		
+
 		// Set row
 		iprintf ("\x1b[%d;0H", i + ENTRIES_START_ROW);
-		
+
 		if (entry->isDirectory) {
 			strncpy (entryName, entry->name.c_str(), SCREEN_COLS);
 			entryName[SCREEN_COLS - 3] = '\0';
@@ -147,15 +147,15 @@ void showDirectoryContents (const vector<DirEntry>& dirContents, int startRow) {
 	}
 }
 
-string browseForFile (const vector<string> extensionList) {
+string browseForFile (const vector<string>& extensionList) {
 	int pressed = 0;
 	int screenOffset = 0;
 	int fileOffset = 0;
 	vector<DirEntry> dirContents;
-	
+
 	getDirectoryContents (dirContents, extensionList);
 	showDirectoryContents (dirContents, screenOffset);
-	
+
 	while (true) {
 		// Clear old cursors
 		for (int i = ENTRIES_START_ROW; i < ENTRIES_PER_SCREEN + ENTRIES_START_ROW; i++) {
@@ -172,12 +172,12 @@ string browseForFile (const vector<string> extensionList) {
 			pressed = keysDownRepeat();
 			swiWaitForVBlank();
 		} while (!pressed);
-	
+
 		if (pressed & KEY_UP) 		fileOffset -= 1;
 		if (pressed & KEY_DOWN) 	fileOffset += 1;
 		if (pressed & KEY_LEFT) 	fileOffset -= ENTRY_PAGE_LENGTH;
 		if (pressed & KEY_RIGHT)	fileOffset += ENTRY_PAGE_LENGTH;
-		
+
 		if (fileOffset < 0) 	fileOffset = dirContents.size() - 1;		// Wrap around to bottom of list
 		if (fileOffset > ((int)dirContents.size() - 1))		fileOffset = 0;		// Wrap around to top of list
 
@@ -190,7 +190,7 @@ string browseForFile (const vector<string> extensionList) {
 			screenOffset = fileOffset - ENTRIES_PER_SCREEN + 1;
 			showDirectoryContents (dirContents, screenOffset);
 		}
-		
+
 		if (pressed & KEY_A) {
 			DirEntry* entry = &dirContents.at(fileOffset);
 			if (entry->isDirectory) {
@@ -208,7 +208,7 @@ string browseForFile (const vector<string> extensionList) {
 				return entry->name;
 			}
 		}
-		
+
 		if (pressed & KEY_B) {
 			// Go up a directory
 			chdir ("..");
