@@ -30,12 +30,18 @@
 
 #include "nds_loader_arm9.h"
 #include "file_browse.h"
+#include "plugin.h"
 
 #include "hbmenu_banner.h"
 
 #include "iconTitle.h"
 
 using namespace std;
+
+static const char PLUGIN_DIR[] = "/nds/plugins";
+static const size_t PLUGIN_DIR_LEN = sizeof(PLUGIN_DIR) - 1;
+static const char NDS_EXT[] = ".nds";
+static const size_t NDS_EXT_LEN = sizeof(NDS_EXT) - 1;
 
 //---------------------------------------------------------------------------------
 void stop (void) {
@@ -45,7 +51,84 @@ void stop (void) {
 	}
 }
 
-char filePath[PATH_MAX];
+char cwd[PATH_MAX];
+
+//---------------------------------------------------------------------------------
+static char *getAbsPath(const char *filename) {
+//---------------------------------------------------------------------------------
+	if (filename[0] == '/') {
+		return strdup(filename);
+	} else {
+		getcwd(cwd, sizeof(cwd));
+		size_t cwdPathLen = strlen(cwd);
+		size_t filenameLen = strlen(filename);
+		char *path = (char *)malloc(cwdPathLen + filenameLen + 1);
+		strcpy(path, cwd);
+		strcpy(path + cwdPathLen, filename);
+		path[cwdPathLen + filenameLen] = '\0';
+		return path;
+	}
+}
+
+//---------------------------------------------------------------------------------
+static bool readArgvFile(vector<char*>& argarray, const std::string& filename) {
+//---------------------------------------------------------------------------------
+	FILE *argfile = fopen(filename.c_str(), "rb");
+	char str[PATH_MAX], *pstr;
+	const char seps[]= "\n\r\t ";
+
+	while (fgets(str, PATH_MAX, argfile)) {
+		// Find comment and end string there
+		if( (pstr = strchr(str, '#')) )
+			*pstr= '\0';
+
+		// Tokenize arguments
+		pstr= strtok(str, seps);
+
+		while (pstr != NULL) {
+			argarray.push_back(strdup(pstr));
+			pstr= strtok(NULL, seps);
+		}
+	}
+	fclose(argfile);
+
+	if (argarray.size() == 0)
+	{
+		iprintf("Invalid argv file\n");
+		return false;
+	}
+
+	// Use absolute path for run NDS file
+	char *oldNdsFile = argarray.at(0);
+	argarray.at(0) = getAbsPath(oldNdsFile);
+	free(oldNdsFile);
+
+	return true;
+}
+
+//---------------------------------------------------------------------------------
+static bool usePluginArgv(vector<char*>& argarray, const std::string& filename) {
+//---------------------------------------------------------------------------------
+	// Determine the plugin path based on the file extension.
+	size_t extPos = filename.rfind('.');
+	if (extPos == string::npos) {
+		iprintf("Unknown plugin\n");
+		return false;
+	}
+
+	// Create the plugin path based on the file extension
+	const char *ext = filename.c_str() + extPos + 1;
+	char *pluginPath = (char *)malloc(PLUGIN_DIR_LEN + 1 + strlen(ext) + NDS_EXT_LEN + 1);
+	strcpy(pluginPath, PLUGIN_DIR);
+	strcat(pluginPath, "/");
+	strcat(pluginPath, ext);
+	strcat(pluginPath, NDS_EXT);
+	argarray.push_back(pluginPath);
+
+	// Store selected file path as argument to plugin
+	argarray.push_back(getAbsPath(filename.c_str()));
+	return true;
+}
 
 //---------------------------------------------------------------------------------
 int main(int argc, char **argv) {
@@ -55,9 +138,6 @@ int main(int argc, char **argv) {
 	// so tapping power on DSi returns to DSi menu
 	extern u64 *fake_heap_end;
 	*fake_heap_end = 0;
-
-	int pathLen;
-	std::string filename;
 
 	iconTitleInit();
 
@@ -77,54 +157,38 @@ int main(int argc, char **argv) {
 	extensionList.push_back(".nds");
 	extensionList.push_back(".argv");
 
+	loadPlugins(extensionList, PLUGIN_DIR, NDS_EXT);
+
 	chdir("/nds");
 
 	while(1) {
 
-		filename = browseForFile(extensionList);
+		std::string filename = browseForFile(extensionList);
 
 		// Construct a command line
-		getcwd (filePath, PATH_MAX);
-		pathLen = strlen (filePath);
 		vector<char*> argarray;
 
-		if ( strcasecmp (filename.c_str() + filename.size() - 5, ".argv") == 0) {
-
-			FILE *argfile = fopen(filename.c_str(),"rb");
-			char str[PATH_MAX], *pstr;
-			const char seps[]= "\n\r\t ";
-
-			while( fgets(str, PATH_MAX, argfile) ) {
-				// Find comment and end string there
-				if( (pstr = strchr(str, '#')) )
-					*pstr= '\0';
-
-				// Tokenize arguments
-				pstr= strtok(str, seps);
-
-				while( pstr != NULL ) {
-					argarray.push_back(strdup(pstr));
-					pstr= strtok(NULL, seps);
-				}
+		if (strcasecmp(filename.c_str() + filename.size() - 5, ".argv") == 0) {
+			if (!readArgvFile(argarray, filename)) {
+				continue;
 			}
-			fclose(argfile);
-			filename = argarray.at(0);
+		} else if (strcasecmp(filename.c_str() + filename.size() - NDS_EXT_LEN, NDS_EXT) == 0) {
+			argarray.push_back(getAbsPath(filename.c_str()));
 		} else {
-			argarray.push_back(strdup(filename.c_str()));
+			if (!usePluginArgv(argarray, filename)) {
+				continue;
+			}
 		}
 
-		if ( strcasecmp (filename.c_str() + filename.size() - 4, ".nds") != 0 || argarray.size() == 0 ) {
+		if (argarray.size() == 0) {
 			iprintf("no nds file specified\n");
-		} else {
-			char *name = argarray.at(0);
-			strcpy (filePath + pathLen, name);
-			free(argarray.at(0));
-			argarray.at(0) = filePath;
-			iprintf ("Running %s with %d parameters\n", argarray[0], argarray.size());
-			int err = runNdsFile (argarray[0], argarray.size(), (const char **)&argarray[0]);
-			iprintf ("Start failed. Error %i\n", err);
-
+			continue;
 		}
+
+		iprintf ("Running %s with %d parameters\n", argarray[0], argarray.size());
+		int err = runNdsFile (argarray[0], argarray.size(), (const char **)&argarray[0]);
+		iprintf ("Start failed. Error %i\n", err);
+
 
 		while(argarray.size() !=0 ) {
 			free(argarray.at(0));
