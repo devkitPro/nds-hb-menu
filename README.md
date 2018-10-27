@@ -9,6 +9,16 @@ The bootstrap.cia file can be installed on a 3DS using FBI. This requires boot.n
 
 Place your homebrew games in the /nds folder and have fun.
 
+## Plugins
+
+The Homebrew Menu supports using plugins to handle data other than `.nds` files. For example, you can use a plugin to browse for music or videos in the Homebrew Menu then play it using its own player program.
+
+To install a plugin, name it `<filetype>.nds`, where `<filetype>` is the type of file it handles, then copy it to a `/nds/plugins` on your card.
+
+E.g. if you have a video player that plays `.avi` files, copy it onto your card at `/nds/plugins/avi.nds`.
+
+## `.argv` files
+
 The Homebrew Menu also supports passing arguments to launched .nds files via .argv files. The testfiles folder has an nds file which lists arguments and some sample .argv files. These are simple text files which start with the name of the nds file to run and a list of arguments to pass to the application. Here's a quick sample .argv file.
 ```shell
 # This is a comment
