@@ -159,7 +159,14 @@ int main(int argc, char **argv) {
 
 	loadPlugins(extensionList, PLUGIN_DIR, NDS_EXT);
 
-	chdir("/nds");
+	if (extensionList.size() == 2) {
+		// Browse the NDS directory when there are no plugins loaded
+		chdir("/nds");
+	} else {
+		// Start at the root directory if there are plugins, since data files
+		// could be anywhere
+		chdir("/");
+	}
 
 	while(1) {
 
