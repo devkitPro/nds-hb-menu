@@ -19,13 +19,5 @@
  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 ------------------------------------------------------------------*/
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 void iconTitleInit (void);
 void iconTitleUpdate (int isdir, const char* name);
-
-#ifdef __cplusplus
-}
-#endif
