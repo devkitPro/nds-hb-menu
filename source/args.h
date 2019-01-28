@@ -40,4 +40,8 @@ bool argsNdsPath(const std::string& filePath, std::string& ndsPath);
  */
 bool argsFillArray(const std::string& filePath, std::vector<std::string>& argarray);
 
+/* Return a list of all file extensions that can be browsed and opened.
+ */
+std::vector<std::string> argsGetExtensionList();
+
 #endif // ARGS_H

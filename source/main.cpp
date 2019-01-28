@@ -68,9 +68,7 @@ int main(int argc, char **argv) {
 
 	keysSetRepeat(25,5);
 
-	vector<string> extensionList;
-	extensionList.push_back(".nds");
-	extensionList.push_back(".argv");
+	vector<string> extensionList = argsGetExtensionList();
 
 	chdir("/nds");
 

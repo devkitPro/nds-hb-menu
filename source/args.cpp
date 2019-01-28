@@ -194,3 +194,10 @@ bool argsFillArray(const string& filePath, vector<string>& argarray) {
 
 	return argarray.size() > 0 && strCaseEnd(argarray[0], NDS_EXT);
 }
+
+vector<string> argsGetExtensionList() {
+	vector<string> extensionList;
+	extensionList.push_back(NDS_EXT);
+	extensionList.push_back(ARG_EXT);
+	return extensionList;
+}
