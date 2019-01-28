@@ -9,13 +9,13 @@ The bootstrap.cia file can be installed on a 3DS using FBI. This requires boot.n
 
 Place your homebrew games in the /nds folder and have fun.
 
-The Homebrew Menu also supports passing arguments to launched .nds files via .argv files. The testfiles folder has an nds file which lists arguments and some sample .argv files. These are simple text files which start with the name of the nds file to run and a list of arguments to pass to the application. Here's a quick sample .argv file.
+## Passing arguments
+The Homebrew Menu supports passing arguments to launched .nds files via .argv files. The testfiles folder has an nds file which lists arguments and some sample .argv files. These are simple text files which start with the name of the nds file to run and a list of arguments to pass to the application. Here's a quick sample .argv file.
 ```shell
 # This is a comment
 # commands can be placed on multiple lines
 # first the name of the nds file to run
 # this can include a path relative to the .argv file
-# absolute paths are not currently supported
 argvTest.nds
 
 # a single argument
@@ -30,6 +30,9 @@ argument4	argument5
 # or even separated by both tabs and spaces
 argument6 argument7	argument8
 ```
+
+## File associations
+Data files can be associated with NDS files via .ext files. These are like .argv files, but instead of being run directly they are named after the file extension of the data file and run when that data file is opened. For example, placing a file named `txt.ext` in the `/nds` folder with the contents `/nds/notes.nds` will open the `notes.nds` app when a `.txt` file is selected.
 
 # License
 Note: While the GPL license allows you to distribute modified versions of this program it would be appreciated if any improvements are contributed to devkitPro. Ultimately the community as a whole is better served by having a single official source for tools, applications and libraries.
