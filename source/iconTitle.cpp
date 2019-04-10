@@ -26,6 +26,7 @@
 #include <ctype.h>
 #include <sys/stat.h>
 
+#include "args.h"
 #include "hbmenu_banner.h"
 #include "font6x8.h"
 
@@ -135,131 +136,66 @@ void iconTitleInit (void) {
 }
 
 
-void iconTitleUpdate (int isdir, const char* name) {
-	writeRow (0,name);
-	writeRow (1,"");
-	writeRow (2,"");
-	writeRow (3,"");
+void iconTitleUpdate (int isdir, const std::string& name) {
+	writeRow (0, name.c_str());
+	writeRow (1, "");
+	writeRow (2, "");
+	writeRow (3, "");
 
 	if (isdir) {
 		// text
-		writeRow (2,"[directory]");
+		writeRow (2, "[directory]");
 		// icon
 		clearIcon();
-	} else if(strlen(name) >= 5 && strcasecmp(name + strlen(name) - 5, ".argv") == 0) {
-		// look through the argv file for the corresponding nds file
-		FILE    *fp;
-		char    *line = NULL, *p = NULL;
-		size_t  size = 0;
-		ssize_t rc;
-
-		// open the argv file
-		fp = fopen(name,"rb");
-		if(fp == NULL) {
-			writeRow(2, "(can't open file!)");
-			clearIcon();
-			fclose(fp); return;
-		}
-
-		// read each line
-		while((rc = __getline(&line, &size, fp)) > 0) {
-			// remove comments
-			if((p = strchr(line, '#')) != NULL)
-				*p = 0;
-
-			// skip leading whitespace
-			for(p = line; *p && isspace((int)*p); ++p)
-			  ;
-
-			if(*p)
-				break;
-		}
-
-		// done with the file at this point
-		fclose(fp);
-
-		if(p && *p) {
-			// we found an argument
-			struct stat st;
-
-			// truncate everything after first argument
-			strtok(p, "\n\r\t ");
-
-			if(strlen(p) < 4 || strcasecmp(p + strlen(p) - 4, ".nds") != 0) {
-				// this is not an nds file!
-				writeRow(2, "(invalid argv file!)");
-				clearIcon();
-			} else {
-				// let's see if this is a file or directory
-				rc = stat(p, &st);
-				if(rc != 0) {
-					// stat failed
-					writeRow(2, "(can't find argument!)");
-					clearIcon();
-				} else if(S_ISDIR(st.st_mode)) {
-					// this is a directory!
-					writeRow(2, "(invalid argv file!)");
-					clearIcon();
-				} else {
-					iconTitleUpdate(false, p);
-				}
-			}
-		} else {
-			writeRow(2, "(no argument!)");
-			clearIcon();
-		}
-		// clean up the allocated line
-		free(line);
 	} else {
-		// this is an nds file!
-		FILE *fp;
+		std::string ndsPath;
+		if (!argsNdsPath(name, ndsPath)) {
+			writeRow(2, "(invalid argv or NDS file!)");
+			clearIcon();
+			return;
+		}
+
 		unsigned int Icon_title_offset;
-		int ret;
 
 		// open file for reading info
-		fp=fopen (name,"rb");
-		if (fp==NULL) {
+		FILE *fp = fopen (ndsPath.c_str(), "rb");
+
+		if (!fp) {
 			// text
 			writeRow (2,"(can't open file!)");
 			// icon
 			clearIcon();
-			fclose (fp); return;
+			fclose (fp);
+			return;
 		}
 
-		ret=fseek (fp, offsetof(tNDSHeader, bannerOffset), SEEK_SET);
-		if (ret==0)
-			ret=fread (&Icon_title_offset, sizeof(int), 1, fp); // read if seek succeed
-		else
-			ret=0;  // if seek fails set to !=1
-
-		if (ret!=1) {
+		if (fseek (fp, offsetof(tNDSHeader, bannerOffset), SEEK_SET) != 0 ||
+				fread (&Icon_title_offset, sizeof(int), 1, fp) != 1) {
 			// text
-			writeRow (2,"(can't read file!)");
+			writeRow (2, "(can't read file!)");
 			// icon
 			clearIcon();
-			fclose (fp); return;
+			fclose (fp);
+			return;
 		}
 
-		if (Icon_title_offset==0) {
+		if (Icon_title_offset == 0) {
 			// text
-			writeRow (2,"(no title/icon)");
+			writeRow (2, "(no title/icon)");
 			// icon
 			clearIcon();
-			fclose (fp); return;
+			fclose (fp);
+			return;
 		}
 
-		ret=fseek (fp,Icon_title_offset,SEEK_SET);
-		if (ret==0)
-			ret=fread (&banner, sizeof(banner), 1, fp); // read if seek succeed
-		else
-			ret=0;  // if seek fails set to !=1
-
-		if (ret!=1) {
+		if (fseek (fp, Icon_title_offset, SEEK_SET) != 0 ||
+				fread (&banner, sizeof(banner), 1, fp) != 1) {
 			// text
 			writeRow (2,"(can't read icon/title!)");
 			// icon
 			clearIcon();
-			fclose (fp); return;
+			fclose (fp);
+			return;
 		}
 
 		// close file!
@@ -267,9 +203,8 @@ void iconTitleUpdate (int isdir, const char* name) {
 
 		// turn unicode into ascii (kind of)
 		// and convert 0x0A into 0x00
-		int i;
 		char *p = (char*)banner.titles[0];
-		for (i = 0; i < sizeof(banner.titles[0]); i = i+2) {
+		for (size_t i = 0; i < sizeof(banner.titles[0]); i = i+2) {
 			if ((p[i] == 0x0A) || (p[i] == 0xFF))
 				p[i/2] = 0;
 			else
@@ -277,9 +212,9 @@ void iconTitleUpdate (int isdir, const char* name) {
 		}
 
 		// text
-		for(i = 0; i < 3; ++i) {
-			writeRow (i+1, p);
-			p += strlen(p)+1;
+		for (size_t i = 0; i < 3; ++i) {
+			writeRow(i+1, p);
+			p += strlen(p) + 1;
 		}
 
 		// icon

@@ -1,8 +1,9 @@
 /*-----------------------------------------------------------------
- Copyright (C) 2005 - 2013
+ Copyright (C) 2005 - 2017
 	Michael "Chishm" Chisholm
 	Dave "WinterMute" Murphy
 	Claudio "sverx"
+	Michael "mtheall" Theall
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -19,7 +20,28 @@
  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 ------------------------------------------------------------------*/
-#include <string>
 
-void iconTitleInit (void);
-void iconTitleUpdate (int isdir, const std::string& name);
+#ifndef ARGS_H
+#define ARGS_H
+
+#include <string>
+#include <vector>
+
+/* Convert a file path of any type (e.g. .nds or .argv) into a path to the NDS
+ * file to be opened. The returned path may be absolute or relative to the
+ * current working directory.
+ * Returns true on success, false on failure.
+ */
+bool argsNdsPath(const std::string& filePath, std::string& ndsPath);
+
+/* Convert a file path of any type into an argument array by filling the array
+ * that is passed in. The first argument will be the full path to an NDS file.
+ * Returns true on success, false on failure.
+ */
+bool argsFillArray(const std::string& filePath, std::vector<std::string>& argarray);
+
+/* Return a list of all file extensions that can be browsed and opened.
+ */
+std::vector<std::string> argsGetExtensionList();
+
+#endif // ARGS_H

@@ -267,7 +267,7 @@ static bool dldiPatchLoader (data_t *binData, u32 binSize, bool clearBSS)
 	return true;
 }
 
-int runNds (const void* loader, u32 loaderSize, u32 cluster, bool initDisc, bool dldiPatchNds, int argc, const char** argv)
+eRunNdsRetCode runNds (const void* loader, u32 loaderSize, u32 cluster, bool initDisc, bool dldiPatchNds, int argc, const char** argv)
 {
 	char* argStart;
 	u16* argData;
@@ -334,7 +334,7 @@ int runNds (const void* loader, u32 loaderSize, u32 cluster, bool initDisc, bool
 	if(dldiPatchNds) {
 		// Patch the loader with a DLDI for the card
 		if (!dldiPatchLoader ((data_t*)LCDC_BANK_C, loaderSize, initDisc)) {
-			return 3;
+			return RUN_NDS_PATCH_DLDI_FAILED;
 		}
 	}
 
@@ -351,10 +351,10 @@ int runNds (const void* loader, u32 loaderSize, u32 cluster, bool initDisc, bool
 	resetARM7(0x06000000);
 
 	swiSoftReset(); 
-	return true;
+	return RUN_NDS_OK;
 }
 
-int runNdsFile (const char* filename, int argc, const char** argv)  {
+eRunNdsRetCode runNdsFile (const char* filename, int argc, const char** argv)  {
 	struct stat st;
 	char filePath[PATH_MAX];
 	int pathLen;
@@ -362,13 +362,13 @@ int runNdsFile (const char* filename, int argc, const char** argv)  {
 
 	
 	if (stat (filename, &st) < 0) {
-		return 1;
+		return RUN_NDS_STAT_FAILED;
 	}
 
 	if (argc <= 0 || !argv) {
 		// Construct a command line if we weren't supplied with one
 		if (!getcwd (filePath, PATH_MAX)) {
-			return 2;
+			return RUN_NDS_GETCWD_FAILED;
 		}
 		pathLen = strlen (filePath);
 		strcpy (filePath + pathLen, filename);

@@ -164,7 +164,7 @@ string browseForFile (const vector<string>& extensionList) {
 		// Show cursor
 		iprintf ("\x1b[%d;0H*", fileOffset - screenOffset + ENTRIES_START_ROW);
 
-		iconTitleUpdate (dirContents.at(fileOffset).isDirectory,dirContents.at(fileOffset).name.c_str());
+		iconTitleUpdate (dirContents.at(fileOffset).isDirectory, dirContents.at(fileOffset).name);
 
 		// Power saving loop. Only poll the keys once per frame and sleep the CPU if there is nothing else to do
 		do {

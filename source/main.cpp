@@ -28,12 +28,12 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "nds_loader_arm9.h"
+#include "args.h"
 #include "file_browse.h"
-
 #include "hbmenu_banner.h"
-
 #include "iconTitle.h"
+#include "nds_loader_arm9.h"
+
 
 using namespace std;
 
@@ -45,8 +45,6 @@ void stop (void) {
 	}
 }
 
-char filePath[PATH_MAX];
-
 //---------------------------------------------------------------------------------
 int main(int argc, char **argv) {
 //---------------------------------------------------------------------------------
@@ -55,9 +53,6 @@ int main(int argc, char **argv) {
 	// so tapping power on DSi returns to DSi menu
 	extern u64 *fake_heap_end;
 	*fake_heap_end = 0;
-
-	int pathLen;
-	std::string filename;
 
 	iconTitleInit();
 
@@ -73,63 +68,33 @@ int main(int argc, char **argv) {
 
 	keysSetRepeat(25,5);
 
-	vector<string> extensionList;
-	extensionList.push_back(".nds");
-	extensionList.push_back(".argv");
+	vector<string> extensionList = argsGetExtensionList();
 
 	chdir("/nds");
 
 	while(1) {
 
-		filename = browseForFile(extensionList);
+		string filename = browseForFile(extensionList);
 
 		// Construct a command line
-		getcwd (filePath, PATH_MAX);
-		pathLen = strlen (filePath);
-		vector<char*> argarray;
+		vector<string> argarray;
+		if (!argsFillArray(filename, argarray)) {
+			iprintf("Invalid NDS or arg file selected\n");
+		} else {
+			iprintf("Running %s with %d parameters\n", argarray[0].c_str(), argarray.size());
 
-		if ( strcasecmp (filename.c_str() + filename.size() - 5, ".argv") == 0) {
-
-			FILE *argfile = fopen(filename.c_str(),"rb");
-			char str[PATH_MAX], *pstr;
-			const char seps[]= "\n\r\t ";
-
-			while( fgets(str, PATH_MAX, argfile) ) {
-				// Find comment and end string there
-				if( (pstr = strchr(str, '#')) )
-					*pstr= '\0';
-
-				// Tokenize arguments
-				pstr= strtok(str, seps);
-
-				while( pstr != NULL ) {
-					argarray.push_back(strdup(pstr));
-					pstr= strtok(NULL, seps);
-				}
+			// Make a copy of argarray using C strings, for the sake of runNdsFile
+			vector<const char*> c_args;
+			for (const auto& arg: argarray) {
+				c_args.push_back(arg.c_str());
 			}
-			fclose(argfile);
-			filename = argarray.at(0);
-		} else {
-			argarray.push_back(strdup(filename.c_str()));
+
+			// Try to run the NDS file with the given arguments
+			int err = runNdsFile(c_args[0], c_args.size(), &c_args[0]);
+			iprintf("Start failed. Error %i\n", err);
 		}
 
-		if ( strcasecmp (filename.c_str() + filename.size() - 4, ".nds") != 0 || argarray.size() == 0 ) {
-			iprintf("no nds file specified\n");
-		} else {
-			char *name = argarray.at(0);
-			strcpy (filePath + pathLen, name);
-			free(argarray.at(0));
-			argarray.at(0) = filePath;
-			iprintf ("Running %s with %d parameters\n", argarray[0], argarray.size());
-			int err = runNdsFile (argarray[0], argarray.size(), (const char **)&argarray[0]);
-			iprintf ("Start failed. Error %i\n", err);
-
-		}
-
-		while(argarray.size() !=0 ) {
-			free(argarray.at(0));
-			argarray.erase(argarray.begin());
-		}
+		argarray.clear();
 
 		while (1) {
 			swiWaitForVBlank();
