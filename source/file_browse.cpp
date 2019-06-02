@@ -47,6 +47,7 @@ struct DirEntry {
 bool nameEndsWith (const string& name, const vector<string> extensionList) {
 
 	if (name.size() == 0) return false;
+	if (name.front() == '.') return false;
 
 	if (extensionList.size() == 0) return true;
 
