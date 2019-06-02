@@ -229,6 +229,12 @@ bool argsFillArray(const string& filePath, vector<string>& argarray) {
 		if (!parseArgFileAll(filePath, argarray)) {
 			return false;
 		}
+		// Ensure argv[0] is absolute path
+		string absPath;
+		if (!toAbsPath(argarray[0], NULL, absPath)) {
+			return false;
+		}
+		argarray[0] = absPath;
 	} else {
 		// This is a data file associated with a handler NDS by an ext file
 		string extPath;
