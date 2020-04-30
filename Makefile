@@ -125,7 +125,7 @@ dist:	all
 	@cp BootStrap/_BOOT_MP.NDS BootStrap/TTMENU.DAT BootStrap/_DS_MENU.DAT BootStrap/ez5sys.bin BootStrap/akmenu4.nds BootStrap/ismat.dat hbmenu
 	@cp BootStrap/bootstrap.cia hbmenu
 	@cp testfiles/* hbmenu/nds
-	@tar -cvjf hbmenu-$(VERSION).tar.bz2 hbmenu README.md COPYING -X exclude.lst
+	@tar -cvjf hbmenu-$(VERSION).tar.bz2 hbmenu README.md COPYING --exclude=*.DS_Store* --exclude=*.tar.bz2
 
 #---------------------------------------------------------------------------------
 $(BUILD):
