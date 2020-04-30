@@ -10,8 +10,8 @@ endif
 include $(DEVKITARM)/ds_rules
 
 export HBMENU_MAJOR	:= 0
-export HBMENU_MINOR	:= 7
-export HBMENU_PATCH	:= 1
+export HBMENU_MINOR	:= 8
+export HBMENU_PATCH	:= 0
 
 
 VERSION	:=	$(HBMENU_MAJOR).$(HBMENU_MINOR).$(HBMENU_PATCH)
