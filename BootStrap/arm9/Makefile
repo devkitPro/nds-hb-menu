@@ -113,18 +113,15 @@ bootloader: ../../data
 else
  
 #---------------------------------------------------------------------------------
-# main targets
+all: $(ARM9ELF) $(ARM9iELF)
 #---------------------------------------------------------------------------------
-
-$(ARM9iELF) : $(ARM9ELF)
-
 $(ARM9ELF)	:	$(OFILES)
 	@echo linking $(notdir $@)
-	@$(LD)  -Wl,--defsym,__secure_area__=0 -Wl,--section-start,.crt0=0x02000450,--nmagic $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
+	@$(LD)  -Wl,--defsym,__secure_area__=0 -Wl,--section-start,.crt0=0x02000450,--nmagic -Wl,-Map,arm9.map $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
 
 $(ARM9iELF)	:	$(OFILES)
 	@echo linking $(notdir $@)
-	@$(LD)  $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
+	@$(LD)  $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -Wl,-Map,arm9i.map -o $@
 
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data 
