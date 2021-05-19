@@ -126,7 +126,7 @@ dist:	all
 	@cp -r BootStrap/ACE3DS hbmenu
 	@cp BootStrap/bootstrap.cia hbmenu
 	@cp testfiles/* hbmenu/nds
-	@tar -cvjf hbmenu-$(VERSION).tar.bz2 hbmenu README.md COPYING
+	@zip -9r hbmenu-$(VERSION).zip hbmenu README.md COPYING
 
 #---------------------------------------------------------------------------------
 $(BUILD):
