@@ -80,11 +80,14 @@ $(TARGET).arm7.elf:
 $(TARGET).arm9.elf:
 	$(MAKE) -C arm9
 
+#---------------------------------------------------------------------------------
+$(TARGET).arm9i.elf:
+	$(MAKE) -C arm9
 
 #---------------------------------------------------------------------------------
 clean:
 	$(MAKE) -C arm9 clean
 	$(MAKE) -C arm7 clean
-	rm -f $(TARGET).nds $(TARGET).arm7.elf $(TARGET).arm9.elf _DS_MENU.DAT ez5sys.bin akmenu4.nds TTMENU.DAT _BOOT_MP.NDS
+	rm -f $(TARGET).nds $(TARGET).arm7.elf $(TARGET).arm9.elf _DS_MENU.DAT ez5sys.bin akmenu4.nds TTMENU.DAT _BOOT_MP.NDS bootstrap.cia
 	rm -f bootstrap.dsi $(TARGET).arm9i.elf
 
