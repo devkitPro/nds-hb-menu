@@ -98,14 +98,14 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
- 
+
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
 	@rm -fr $(BUILD) *.elf *.nds* *.bin 
- 
+
 ../../data:
-	@mkdir -p ../data
+	@mkdir -p $@
 
 bootloader: ../../data
 	@$(MAKE) -C ../../bootloader
@@ -132,7 +132,7 @@ $(ARM9iELF)	:	$(OFILES)
 	@$(bin2o)
 
 -include $(DEPSDIR)/*.d
- 
+
 #---------------------------------------------------------------------------------------
 endif
 #---------------------------------------------------------------------------------------
