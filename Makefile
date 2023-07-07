@@ -114,24 +114,29 @@ else
 	endif
 endif
 
-.PHONY: bootloader bootstub BootStrap exceptionstub $(BUILD) clean
+.PHONY: bootloader bootstub BootStrap exceptionstub $(BUILD) clean cia
 
 all:	bootloader bootstub exceptionstub $(BUILD) BootStrap
 
+cia:
+	$(MAKE) -C BootStrap bootstrap.cia
+
 dist:	all
-	@rm	-fr	hbmenu
-	@mkdir -p hbmenu/nds
-	@cp hbmenu.nds hbmenu/BOOT.NDS
-	@cp BootStrap/_BOOT_MP.NDS BootStrap/TTMENU.DAT BootStrap/_DS_MENU.DAT BootStrap/ez5sys.bin BootStrap/akmenu4.nds BootStrap/ismat.dat hbmenu
-	@cp -r BootStrap/ACE3DS hbmenu
-	@cp BootStrap/bootstrap.cia hbmenu
-	@cp testfiles/* hbmenu/nds
-	@zip -9r hbmenu-$(VERSION).zip hbmenu README.md COPYING
+	rm	-fr	hbmenu
+	mkdir -p hbmenu/nds
+	cp hbmenu.nds hbmenu/BOOT.NDS
+	cp BootStrap/_BOOT_MP.NDS BootStrap/TTMENU.DAT BootStrap/_DS_MENU.DAT BootStrap/ez5sys.bin BootStrap/akmenu4.nds BootStrap/ismat.dat hbmenu
+	cp -r BootStrap/ACE3DS hbmenu
+ifneq (,$(wildcard BootStrap/bootstrap.cia))
+	cp "BootStrap/bootstrap.cia" hbmenu
+endif
+	cp testfiles/* hbmenu/nds
+	zip -9r hbmenu-$(VERSION).zip hbmenu README.md COPYING
 
 #---------------------------------------------------------------------------------
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
-	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:

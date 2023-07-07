@@ -16,7 +16,7 @@ export TOPDIR		:=	$(CURDIR)
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
-all: checkarm7 checkarm9 _DS_MENU.DAT ismat.dat ez5sys.bin akmenu4.nds TTMENU.DAT _BOOT_MP.NDS ACE3DS/_DS_MENU.DAT bootstrap.cia
+all: checkarm7 checkarm9 _DS_MENU.DAT ismat.dat ez5sys.bin akmenu4.nds TTMENU.DAT _BOOT_MP.NDS ACE3DS/_DS_MENU.DAT
 
 _DS_MENU.DAT	:	$(TARGET).nds r4tfv2.dldi
 	@dlditool r4tfv2.dldi $<
