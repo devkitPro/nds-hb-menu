@@ -114,14 +114,14 @@ else
 	endif
 endif
 
-.PHONY: bootloader bootstub BootStrap exceptionstub $(BUILD) clean cia
+.PHONY: all cia dist $(BUILD) clean data bootloader exceptionstub bootstub BootStrap
 
-all:	bootloader bootstub exceptionstub $(BUILD) BootStrap
+all:	$(BUILD)
 
 cia:
 	$(MAKE) -C BootStrap bootstrap.cia
 
-dist:	all
+dist:	$(BUILD) BootStrap
 	rm	-fr	hbmenu
 	mkdir -p hbmenu/nds
 	cp hbmenu.nds hbmenu/BOOT.NDS
@@ -134,7 +134,7 @@ endif
 	zip -9r hbmenu-$(VERSION).zip hbmenu README.md COPYING
 
 #---------------------------------------------------------------------------------
-$(BUILD):
+$(BUILD): bootloader bootstub exceptionstub
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
@@ -159,7 +159,7 @@ exceptionstub: data
 bootstub: data
 	@$(MAKE) -C bootstub
 
-BootStrap:
+BootStrap: bootloader
 	@$(MAKE) -C BootStrap
 
 #---------------------------------------------------------------------------------
