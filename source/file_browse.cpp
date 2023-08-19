@@ -157,7 +157,7 @@ string browseForFile (const vector<string>& extensionList) {
 	getDirectoryContents (dirContents, extensionList);
 	showDirectoryContents (dirContents, screenOffset);
 
-	while (true) {
+	while (pmMainLoop()) {
 		// Clear old cursors
 		for (int i = ENTRIES_START_ROW; i < ENTRIES_PER_SCREEN + ENTRIES_START_ROW; i++) {
 			iprintf ("\x1b[%d;0H ", i);
@@ -172,6 +172,9 @@ string browseForFile (const vector<string>& extensionList) {
 			scanKeys();
 			pressed = keysDownRepeat();
 			swiWaitForVBlank();
+			if (!pmMainLoop()) {
+				return "";
+			}
 		} while (!pressed);
 
 		if (pressed & KEY_UP) 		fileOffset -= 1;
@@ -219,4 +222,6 @@ string browseForFile (const vector<string>& extensionList) {
 			showDirectoryContents (dirContents, screenOffset);
 		}
 	}
+
+	return "";
 }

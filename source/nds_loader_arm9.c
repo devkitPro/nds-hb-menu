@@ -21,6 +21,8 @@
 #include <string.h>
 #include <nds.h>
 #include <nds/arm9/dldi.h>
+#include <calico/arm/common.h>
+#include <calico/nds/env.h>
 #include <sys/stat.h>
 #include <limits.h>
 
@@ -75,10 +77,6 @@ dsiMode:
 typedef signed int addr_t;
 typedef unsigned char data_t;
 
-#define FIX_ALL	0x01
-#define FIX_GLUE	0x02
-#define FIX_GOT	0x04
-#define FIX_BSS	0x08
 
 enum DldiOffsets {
 	DO_magicString = 0x00,			// "\xED\xA5\x8D\xBF Chishm"
@@ -119,18 +117,6 @@ static addr_t readAddr (data_t *mem, addr_t offset) {
 static void writeAddr (data_t *mem, addr_t offset, addr_t value) {
 	((addr_t*)mem)[offset/sizeof(addr_t)] = value;
 }
-
-static void vramcpy (void* dst, const void* src, int len)
-{
-	u16* dst16 = (u16*)dst;
-	u16* src16 = (u16*)src;
-	
-	//dmaCopy(src, dst, len);
-
-	for ( ; len > 0; len -= 2) {
-		*dst16++ = *src16++;
-	}
-}	
 
 static addr_t quickFind (const data_t* data, const data_t* search, size_t dataLen, size_t searchLen) {
 	const int* dataChunk = (const int*) data;
@@ -183,8 +169,14 @@ static bool dldiPatchLoader (data_t *binData, u32 binSize, bool clearBSS)
 		return false;
 	}
 
+	alignas(ARM_CACHE_LINE_SZ) static data_t io_dldi_data[DLDI_MAX_ALLOC_SZ];
+
 	pDH = (data_t*)(io_dldi_data);
-	
+	if (!dldiDumpInternal(pDH)) {
+		// No DLDI patch
+		return false;
+	}
+
 	pAH = &(binData[patchOffset]);
 
 	if (*((u32*)(pDH + DO_ioType)) == DEVICE_TYPE_DLDI) {
@@ -213,7 +205,7 @@ static bool dldiPatchLoader (data_t *binData, u32 binSize, bool clearBSS)
 	// Remember how much space is actually reserved
 	pDH[DO_allocatedSpace] = pAH[DO_allocatedSpace];
 	// Copy the DLDI patch into the application
-	vramcpy (pAH, pDH, dldiFileSize);
+	armCopyMem32 (pAH, pDH, dldiFileSize);
 
 	// Fix the section pointers in the header
 	writeAddr (pAH, DO_text_start, readAddr (pAH, DO_text_start) + relocationOffset);
@@ -234,7 +226,7 @@ static bool dldiPatchLoader (data_t *binData, u32 binSize, bool clearBSS)
 
 	if (pDH[DO_fixSections] & FIX_ALL) { 
 		// Search through and fix pointers within the data section of the file
-		for (addrIter = (readAddr(pDH, DO_text_start) - ddmemStart); addrIter < (readAddr(pDH, DO_data_end) - ddmemStart); addrIter++) {
+		for (addrIter = (readAddr(pDH, DO_text_start) - ddmemStart); addrIter < (readAddr(pDH, DO_data_end) - ddmemStart); addrIter+=4) {
 			if ((ddmemStart <= readAddr(pAH, addrIter)) && (readAddr(pAH, addrIter) < ddmemEnd)) {
 				writeAddr (pAH, addrIter, readAddr(pAH, addrIter) + relocationOffset);
 			}
@@ -243,7 +235,7 @@ static bool dldiPatchLoader (data_t *binData, u32 binSize, bool clearBSS)
 
 	if (pDH[DO_fixSections] & FIX_GLUE) { 
 		// Search through and fix pointers within the glue section of the file
-		for (addrIter = (readAddr(pDH, DO_glue_start) - ddmemStart); addrIter < (readAddr(pDH, DO_glue_end) - ddmemStart); addrIter++) {
+		for (addrIter = (readAddr(pDH, DO_glue_start) - ddmemStart); addrIter < (readAddr(pDH, DO_glue_end) - ddmemStart); addrIter+=4) {
 			if ((ddmemStart <= readAddr(pAH, addrIter)) && (readAddr(pAH, addrIter) < ddmemEnd)) {
 				writeAddr (pAH, addrIter, readAddr(pAH, addrIter) + relocationOffset);
 			}
@@ -252,7 +244,7 @@ static bool dldiPatchLoader (data_t *binData, u32 binSize, bool clearBSS)
 
 	if (pDH[DO_fixSections] & FIX_GOT) { 
 		// Search through and fix pointers within the Global Offset Table section of the file
-		for (addrIter = (readAddr(pDH, DO_got_start) - ddmemStart); addrIter < (readAddr(pDH, DO_got_end) - ddmemStart); addrIter++) {
+		for (addrIter = (readAddr(pDH, DO_got_start) - ddmemStart); addrIter < (readAddr(pDH, DO_got_end) - ddmemStart); addrIter+=4) {
 			if ((ddmemStart <= readAddr(pAH, addrIter)) && (readAddr(pAH, addrIter) < ddmemEnd)) {
 				writeAddr (pAH, addrIter, readAddr(pAH, addrIter) + relocationOffset);
 			}
@@ -261,7 +253,7 @@ static bool dldiPatchLoader (data_t *binData, u32 binSize, bool clearBSS)
 
 	if (clearBSS && (pDH[DO_fixSections] & FIX_BSS)) { 
 		// Initialise the BSS to 0, only if the disc is being re-inited
-		memset (&pAH[readAddr(pDH, DO_bss_start) - ddmemStart] , 0, readAddr(pDH, DO_bss_end) - readAddr(pDH, DO_bss_start));
+		armFillMem32 (&pAH[readAddr(pDH, DO_bss_start) - ddmemStart] , 0, readAddr(pDH, DO_bss_end) - readAddr(pDH, DO_bss_start));
 	}
 
 	return true;
@@ -275,12 +267,10 @@ eRunNdsRetCode runNds (const void* loader, u32 loaderSize, u32 cluster, bool ini
 	int argSize;
 	const char* argChar;
 
-	irqDisable(IRQ_ALL);
-
 	// Direct CPU access to VRAM bank C
 	VRAM_C_CR = VRAM_ENABLE | VRAM_C_LCD;
 	// Load the loader/patcher into the correct address
-	vramcpy (LCDC_BANK_C, loader, loaderSize);
+	armCopyMem32 (LCDC_BANK_C, loader, loaderSize);
 
 	// Set the parameters for the loader
 	// STORED_FILE_CLUSTER = cluster;
@@ -338,20 +328,18 @@ eRunNdsRetCode runNds (const void* loader, u32 loaderSize, u32 cluster, bool ini
 		}
 	}
 
-	irqDisable(IRQ_ALL);
-
 	// Give the VRAM to the ARM7
 	VRAM_C_CR = VRAM_ENABLE | VRAM_C_ARM7_0x06000000;	
 	// Reset into a passme loop
-	REG_EXMEMCNT |= ARM7_OWNS_ROM | ARM7_OWNS_CARD;
 	*((vu32*)0x02FFFFFC) = 0;
-	*((vu32*)0x02FFFE04) = (u32)0xE59FF018;
-	*((vu32*)0x02FFFE24) = (u32)0x02FFFE04;
+	*(u32*)&g_envAppNdsHeader->title[4] = 0xE59FF018;
+	g_envAppNdsHeader->arm9_entrypoint = (u32)&g_envAppNdsHeader->title[4];
+	g_envAppNdsHeader->arm7_entrypoint = 0x06000000;
+	g_envAppTwlHeader->arm7_wram_setting[0] = 0x00403000;
+	g_envExtraInfo->pm_chainload_flag = 1;
 
-	resetARM7(0x06000000);
 
-	swiSoftReset(); 
-	return RUN_NDS_OK;
+	exit(0);
 }
 
 eRunNdsRetCode runNdsFile (const char* filename, int argc, const char** argv)  {
@@ -409,12 +397,11 @@ void(*exceptionstub)(void) = (void(*)(void))0x2ffa000;
 
 bool installBootStub(bool havedsiSD) {
 #ifndef _NO_BOOTSTUB_
-	extern char *fake_heap_end;
-	struct __bootstub *bootstub = (struct __bootstub *)fake_heap_end;
-	u32 *bootloader = (u32*)(fake_heap_end+bootstub_bin_size);
+	void* bootstub = g_envNdsBootstub;
+	u32 *bootloader = (u32*)((u8*)bootstub+bootstub_bin_size);
 
-	memcpy(bootstub,bootstub_bin,bootstub_bin_size);
-	memcpy(bootloader,load_bin,load_bin_size);
+	armCopyMem32(bootstub,bootstub_bin,bootstub_bin_size);
+	armCopyMem32(bootloader,load_bin,load_bin_size);
 	bool ret = false;
 
 	bootloader[8] = isDSiMode();
@@ -425,13 +412,12 @@ bool installBootStub(bool havedsiSD) {
 	} else {
 		ret = dldiPatchLoader((data_t*)bootloader, load_bin_size,false);
 	}
-	bootstub->arm9reboot = (VoidFn)(((u32)bootstub->arm9reboot)+fake_heap_end);
-	bootstub->arm7reboot = (VoidFn)(((u32)bootstub->arm7reboot)+fake_heap_end);
-	bootstub->bootsize = load_bin_size;
 
-	memcpy(exceptionstub,exceptionstub_bin,exceptionstub_bin_size);
+	g_envNdsBootstub->arm9_entrypoint = (void*)((u32)bootstub+(u32)g_envNdsBootstub->arm9_entrypoint);
+	g_envNdsBootstub->arm7_entrypoint = (void*)((u32)bootstub+(u32)g_envNdsBootstub->arm7_entrypoint);
+	*(u32*)(g_envNdsBootstub+1) = load_bin_size;
 
-	exceptionstub();
+	armCopyMem32(exceptionstub,exceptionstub_bin,exceptionstub_bin_size);
 
 	DC_FlushAll();
 
