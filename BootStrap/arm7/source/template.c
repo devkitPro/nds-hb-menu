@@ -1,63 +1,33 @@
-/*---------------------------------------------------------------------------------
+#include <calico.h>
 
-default ARM7 core
+__attribute__((section(".prepad"))) const char dummy[16] = "hbmenu bootstrap";
 
-Copyright (C) 2005 - 2010
-	Michael Noland (joat)
-	Jason Rogers (dovoto)
-	Dave Murphy (WinterMute)
+int main(int argc, char* argv[])
+{
+	// Read settings from NVRAM
+	envReadNvramSettings();
 
-This software is provided 'as-is', without any express or implied
-warranty.  In no event will the authors be held liable for any
-damages arising from the use of this software.
+	// Set up extended keypad server (X/Y/hinge)
+	keypadStartExtServer();
 
-Permission is granted to anyone to use this software for any
-purpose, including commercial applications, and to alter it and
-redistribute it freely, subject to the following restrictions:
+	// Configure and enable VBlank interrupt
+	lcdSetIrqMask(DISPSTAT_IE_ALL, DISPSTAT_IE_VBLANK);
+	irqEnable(IRQ_VBLANK);
 
-1.	The origin of this software must not be misrepresented; you
-	must not claim that you wrote the original software. If you use
-	this software in a product, an acknowledgment in the product
-	documentation would be appreciated but is not required.
+	// Set up RTC
+	rtcInit();
+	rtcSyncTime();
 
-2.	Altered source versions must be plainly marked as such, and
-	must not be misrepresented as being the original software.
+	// Initialize power management
+	pmInit();
 
-3.	This notice may not be removed or altered from any source
-	distribution.
+	// Set up block device peripherals
+	blkInit();
 
----------------------------------------------------------------------------------*/
-#include <nds.h>
+	// Main loop (mostly idle)
+	while (pmMainLoop()) {
+		threadWaitForVBlank();
+	}
 
-//---------------------------------------------------------------------------------
-void VcountHandler() {
-//---------------------------------------------------------------------------------
-	inputGetAndSend();
+	return 0;
 }
-
-//---------------------------------------------------------------------------------
-int main() {
-//---------------------------------------------------------------------------------
-	irqInit();
-
-	// read User Settings from firmware
-	readUserSettings();
-
-	// Start the RTC tracking IRQ
-	initClockIRQ();
-
-	fifoInit();
-
-	SetYtrigger(80);
-
-	installSystemFIFO();
-	
-	irqSet(IRQ_VCOUNT, VcountHandler);
-
-	irqEnable( IRQ_VBLANK | IRQ_VCOUNT | IRQ_NETWORK);   
-
-	// Keep the ARM7 mostly idle
-	while (1) swiWaitForVBlank();
-}
-
-

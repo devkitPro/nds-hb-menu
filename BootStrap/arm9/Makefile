@@ -35,7 +35,7 @@ CXXFLAGS	:=	$(CFLAGS) -fno-rtti -fno-exceptions
 
 ASFLAGS	:=	-g $(ARCH) -march=armv5te -mtune=arm946e-s
 
-LDFLAGS	=	-specs=ds_arm9.specs -g $(ARCH) -Wl,-Map,$(TARGET).map
+LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(TARGET).map
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
@@ -115,13 +115,10 @@ else
 #---------------------------------------------------------------------------------
 all: $(ARM9ELF) $(ARM9iELF)
 #---------------------------------------------------------------------------------
-$(ARM9ELF)	:	$(OFILES)
-	@echo linking $(notdir $@)
-	@$(LD)  -Wl,--defsym,__secure_area__=0 -Wl,--section-start,.crt0=0x02000450,--nmagic -Wl,-Map,arm9.map $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
 
-$(ARM9iELF)	:	$(OFILES)
-	@echo linking $(notdir $@)
-	@$(LD)  $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -Wl,-Map,arm9i.map -o $@
+$(ARM9ELF)	:	$(OFILES)
+$(ARM9ELF)	:	LDFLAGS += -specs=$(CALICO)/share/ds9-legacy.specs -Wl,--section-start,.crt0=0x02000450 -Wl,-Map,arm9.map
+$(ARM9iELF)	:	LDFLAGS += -specs=$(CALICO)/share/ds9.specs        -Wl,-Map,arm9i.map
 
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data 

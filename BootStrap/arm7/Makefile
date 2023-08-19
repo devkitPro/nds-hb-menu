@@ -108,8 +108,6 @@ DEPENDS	:=	$(OFILES:.o=.d)
 #---------------------------------------------------------------------------------
 
 $(ARM7ELF)	:	$(OFILES)
-	@echo linking $(notdir $@)
-	$(LD) $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
 
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data 
