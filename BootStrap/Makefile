@@ -22,21 +22,22 @@ all: checkarm7 checkarm9 \
 	ACE3DS/_ds_menu.dat ACE3DS/_dsmenu.dat
 
 _ds_menu.dat	:	$(TARGET).nds r4tfv2.dldi
-	@dlditool r4tfv2.dldi $(TARGET).nds
-	@r4denc $< $(TARGET).nds $@
+	@cp $(TARGET).nds _ds_menu.nds
+	@dlditool r4tfv2.dldi _ds_menu.nds
+	@r4denc $< _ds_menu.nds $@
 
 ACE3DS/_ds_menu.dat	:	$(TARGET).nds ace3ds_sd.dldi
 	@[ -d ACE3DS ] || mkdir -p ACE3DS
-	cp $(TARGET).nds $@
-	dlditool ace3ds_sd.dldi $@
-	r4denc --key 0x4002 $< $(TARGET).nds $@
+	@cp $(TARGET).nds ACE3DS/_ds_menu.nds
+	@dlditool ace3ds_sd.dldi ACE3DS/_ds_menu.nds
+	@r4denc --key 0x4002 ACE3DS/_ds_menu.nds $@
 
 # Alternative name for some ACE3DS clones.
 ACE3DS/_dsmenu.dat	:	$(TARGET).nds ace3ds_sd.dldi
 	@[ -d ACE3DS ] || mkdir -p ACE3DS
-	cp $(TARGET).nds $@
-	dlditool ace3ds_sd.dldi $@
-	r4denc --key 0x4002 $< $(TARGET).nds $@
+	@cp $(TARGET).nds ACE3DS/_dsmenu.nds
+	@dlditool ace3ds_sd.dldi ACE3DS/_dsmenu.nds
+	@r4denc --key 0x4002 ACE3DS/_dsmenu.nds $@
 
 ez5sys.bin	:	$(TARGET).nds EZ5V2.dldi
 	@cp $< $@
