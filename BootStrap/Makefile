@@ -31,6 +31,13 @@ ACE3DS/_ds_menu.dat	:	$(TARGET).nds ace3ds_sd.dldi
 	dlditool ace3ds_sd.dldi $@
 	r4denc --key 0x4002 $< $(TARGET).nds $@
 
+# Alternative name for some ACE3DS clones.
+ACE3DS/_dsmenu.dat	:	$(TARGET).nds ace3ds_sd.dldi
+	@[ -d ACE3DS ] || mkdir -p ACE3DS
+	cp $(TARGET).nds $@
+	dlditool ace3ds_sd.dldi $@
+	r4denc --key 0x4002 $< $(TARGET).nds $@
+
 ez5sys.bin	:	$(TARGET).nds EZ5V2.dldi
 	@cp $< $@
 	@dlditool EZ5V2.dldi $@
@@ -68,7 +75,7 @@ bootstrap.dsi : $(TARGET).arm7.elf $(TARGET).arm9i.elf
 
 #---------------------------------------------------------------------------------
 $(TARGET).nds	:	$(TARGET).arm7.elf $(TARGET).arm9.elf
-	ndstool	-h 0x200 -c $(TARGET).nds -7 $(TARGET).arm7.elf -9 $(TARGET).arm9.elf
+	ndstool	-g "####" "##" "R4XX" -h 0x200 -c $(TARGET).nds -7 $(TARGET).arm7.elf -9 $(TARGET).arm9.elf
 
 checkarm7:
 	$(MAKE) -C arm7
