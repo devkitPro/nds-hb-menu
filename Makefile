@@ -125,7 +125,7 @@ dist:	all
 	rm	-fr	hbmenu
 	mkdir -p hbmenu/nds
 	cp hbmenu.nds hbmenu/BOOT.NDS
-	cp BootStrap/_BOOT_MP.NDS BootStrap/TTMENU.DAT BootStrap/_DS_MENU.DAT BootStrap/ez5sys.bin BootStrap/akmenu4.nds BootStrap/ismat.dat hbmenu
+	cp BootStrap/_BOOT_MP.NDS BootStrap/TTMENU.DAT BootStrap/_ds_menu.dat BootStrap/ez5sys.bin BootStrap/akmenu4.nds BootStrap/ismat.dat hbmenu
 	cp -r BootStrap/ACE3DS hbmenu
 ifneq (,$(wildcard BootStrap/bootstrap.cia))
 	cp "BootStrap/bootstrap.cia" hbmenu

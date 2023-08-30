@@ -16,16 +16,20 @@ export TOPDIR		:=	$(CURDIR)
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
-all: checkarm7 checkarm9 _DS_MENU.DAT ismat.dat ez5sys.bin akmenu4.nds TTMENU.DAT _BOOT_MP.NDS ACE3DS/_DS_MENU.DAT
+all: checkarm7 checkarm9 \
+	_ds_menu.dat ismat.dat ez5sys.bin \
+	akmenu4.nds TTMENU.DAT _BOOT_MP.NDS \
+	ACE3DS/_ds_menu.dat ACE3DS/_dsmenu.dat
 
-_DS_MENU.DAT	:	$(TARGET).nds r4tfv2.dldi
-	@dlditool r4tfv2.dldi $<
-	@r4denc $< $@
+_ds_menu.dat	:	$(TARGET).nds r4tfv2.dldi
+	@dlditool r4tfv2.dldi $(TARGET).nds
+	@r4denc $< $(TARGET).nds $@
 
-ACE3DS/_DS_MENU.DAT	:	$(TARGET).nds r4tfv2.dldi
+ACE3DS/_ds_menu.dat	:	$(TARGET).nds ace3ds_sd.dldi
 	@[ -d ACE3DS ] || mkdir -p ACE3DS
-	@dlditool ace3ds_sd.dldi $<
-	r4denc --key 0x4002 $< $@
+	cp $(TARGET).nds $@
+	dlditool ace3ds_sd.dldi $@
+	r4denc --key 0x4002 $< $(TARGET).nds $@
 
 ez5sys.bin	:	$(TARGET).nds EZ5V2.dldi
 	@cp $< $@
