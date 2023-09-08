@@ -41,6 +41,7 @@ eRunNdsRetCode runNds (const void* loader, u32 loaderSize, u32 cluster, bool ini
 eRunNdsRetCode runNdsFile (const char* filename, int argc, const char** argv);
 
 bool installBootStub(bool havedsiSD);
+void installExcptStub(void);
 
 #ifdef __cplusplus
 }

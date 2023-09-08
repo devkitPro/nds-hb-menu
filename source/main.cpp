@@ -53,6 +53,9 @@ int main(int argc, char **argv) {
 	// so tapping power on DSi returns to DSi menu
 	pmClearResetJumpTarget();
 
+	// install exception stub
+	installExcptStub();
+
 	iconTitleInit();
 
 	// Subscreen as a console
