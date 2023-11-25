@@ -157,7 +157,7 @@ static eRunNdsRetCode runNds (const void* loader, u32 loaderSize, u32 cluster, i
 	*(u32*)&g_envAppNdsHeader->title[4] = 0xE59FF018;
 	g_envAppNdsHeader->arm9_entrypoint = (u32)&g_envAppNdsHeader->title[4];
 	g_envAppNdsHeader->arm7_entrypoint = 0x06000000;
-	g_envAppTwlHeader->arm7_wram_setting[0] = 0x00403000;
+	g_envAppTwlHeader->arm7_mbk_map_settings[0] = mbkMakeMapping(MM_TWLWRAM_MAP, MM_TWLWRAM_MAP+MM_TWLWRAM_BANK_SZ, MbkMapSize_256K);
 	g_envExtraInfo->pm_chainload_flag = 1;
 
 	exit(0);
