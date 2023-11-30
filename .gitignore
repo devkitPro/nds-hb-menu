@@ -8,6 +8,7 @@
 *.dsi
 *.cia
 *.zip
+SCFW.SC
 BootStrap/arm7/build
 BootStrap/arm9/build
 data

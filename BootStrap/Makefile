@@ -18,7 +18,7 @@ export TOPDIR		:=	$(CURDIR)
 #---------------------------------------------------------------------------------
 all: checkarm7 checkarm9 \
 	_ds_menu.dat ismat.dat ez5sys.bin \
-	akmenu4.nds TTMENU.DAT _BOOT_MP.NDS \
+	akmenu4.nds TTMENU.DAT SCFW.SC _BOOT_MP.NDS \
 	ACE3DS/_ds_menu.dat ACE3DS/_dsmenu.dat
 
 _ds_menu.dat	:	$(TARGET).nds r4tfv2.dldi
@@ -76,7 +76,11 @@ bootstrap.dsi : $(TARGET).arm7.elf $(TARGET).arm9i.elf
 
 #---------------------------------------------------------------------------------
 $(TARGET).nds	:	$(TARGET).arm7.elf $(TARGET).arm9.elf
-	ndstool	-g "####" "##" "R4XX" -h 0x200 -c $(TARGET).nds -7 $(TARGET).arm7.elf -9 $(TARGET).arm9.elf
+	@ndstool	-g "####" "##" "R4XX" -h 0x200 -c $(TARGET).nds -7 $(TARGET).arm7.elf -9 $(TARGET).arm9.elf
+
+SCFW.SC	:	$(TARGET).arm7.elf $(TARGET).arm9.elf
+	@ndstool	-g "ENG0" "00" "DSONE" -h 0x200 -c SCFW.SC -7 $(TARGET).arm7.elf -9 $(TARGET).arm9.elf
+	@dlditool scdsone_sdhc.dldi $@
 
 checkarm7:
 	$(MAKE) -C arm7
