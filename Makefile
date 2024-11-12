@@ -10,7 +10,7 @@ endif
 include $(DEVKITARM)/ds_rules
 
 export HBMENU_MAJOR	:= 0
-export HBMENU_MINOR	:= 9
+export HBMENU_MINOR	:= 10
 export HBMENU_PATCH	:= 0
 
 
@@ -122,11 +122,13 @@ cia:
 	$(MAKE) -C BootStrap bootstrap.cia
 
 dist:	$(BUILD) BootStrap
-	rm	-fr	hbmenu
-	mkdir -p hbmenu/nds
-	cp hbmenu.nds hbmenu/BOOT.NDS
-	cp BootStrap/_BOOT_MP.NDS BootStrap/TTMENU.DAT BootStrap/_ds_menu.dat BootStrap/ez5sys.bin BootStrap/akmenu4.nds BootStrap/ismat.dat hbmenu
-	cp -r BootStrap/ACE3DS hbmenu
+	@rm	-fr	hbmenu
+	@mkdir -p hbmenu/nds
+	@cp hbmenu.nds hbmenu/BOOT.NDS
+	@cp BootStrap/_BOOT_MP.NDS BootStrap/TTMENU.DAT BootStrap/SCFW.SC BootStrap/_ds_menu.dat BootStrap/ez5sys.bin BootStrap/akmenu4.nds BootStrap/ismat.dat hbmenu
+	@mkdir hbmenu/ACE3DS
+	@cp BootStrap/ACE3DS/_ds_menu.dat hbmenu/ACE3DS
+	@cp BootStrap/ACE3DS/_dsmenu.dat hbmenu/ACE3DS
 ifneq (,$(wildcard BootStrap/bootstrap.cia))
 	cp "BootStrap/bootstrap.cia" hbmenu
 endif
