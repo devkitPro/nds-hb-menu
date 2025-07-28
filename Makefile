@@ -125,7 +125,10 @@ dist:	$(BUILD) BootStrap
 	@rm	-fr	hbmenu
 	@mkdir -p hbmenu/nds
 	@cp hbmenu.nds hbmenu/BOOT.NDS
-	@cp BootStrap/_BOOT_MP.NDS BootStrap/TTMENU.DAT BootStrap/SCFW.SC BootStrap/_ds_menu.dat BootStrap/ez5sys.bin BootStrap/akmenu4.nds BootStrap/ismat.dat hbmenu
+	@cp BootStrap/_BOOT_MP.NDS BootStrap/TTMENU.DAT BootStrap/SCFW.SC \
+	    BootStrap/_ds_menu.dat BootStrap/ez5sys.bin BootStrap/akmenu4.nds \
+	    BootStrap/ismat.dat BootStrap/EZDS.dat \
+	    hbmenu
 	@mkdir hbmenu/ACE3DS
 	@cp BootStrap/ACE3DS/_ds_menu.dat hbmenu/ACE3DS
 	@cp BootStrap/ACE3DS/_dsmenu.dat hbmenu/ACE3DS

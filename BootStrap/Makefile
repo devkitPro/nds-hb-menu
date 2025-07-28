@@ -19,7 +19,7 @@ export TOPDIR		:=	$(CURDIR)
 all: checkarm7 checkarm9 \
 	_ds_menu.dat ismat.dat ez5sys.bin \
 	akmenu4.nds TTMENU.DAT SCFW.SC _BOOT_MP.NDS \
-	ACE3DS/_ds_menu.dat ACE3DS/_dsmenu.dat
+	ACE3DS/_ds_menu.dat ACE3DS/_dsmenu.dat EZDS.dat
 
 _ds_menu.dat	:	$(TARGET).nds r4tfv2.dldi
 	@cp $(TARGET).nds _ds_menu.nds
@@ -38,6 +38,10 @@ ACE3DS/_dsmenu.dat	:	$(TARGET).nds ace3ds_sd.dldi
 	@cp $(TARGET).nds ACE3DS/_dsmenu.nds
 	@dlditool ace3ds_sd.dldi ACE3DS/_dsmenu.nds
 	@r4denc --key 0x4002 ACE3DS/_dsmenu.nds $@
+
+EZDS.dat: $(TARGET).nds EZDS_DLDI.dldi
+	@cp $< $@
+	@dlditool EZDS_DLDI.dldi $@
 
 ez5sys.bin	:	$(TARGET).nds EZ5V2.dldi
 	@cp $< $@
@@ -104,7 +108,7 @@ $(TARGET).arm9i.elf:
 clean:
 	$(MAKE) -C arm9 clean
 	$(MAKE) -C arm7 clean
-	rm -f $(TARGET).nds $(TARGET).arm7.elf $(TARGET).arm9.elf _ds_menu.dat ez5sys.bin akmenu4.nds TTMENU.DAT _BOOT_MP.NDS ismat.dat
+	rm -f $(TARGET).nds $(TARGET).arm7.elf $(TARGET).arm9.elf _ds_menu.dat ez5sys.bin akmenu4.nds TTMENU.DAT _BOOT_MP.NDS ismat.dat EZDS.dat
 	rm -fr ACE3DS
 	rm -f bootstrap.dsi $(TARGET).arm9i.elf bootstrap.cia
 
