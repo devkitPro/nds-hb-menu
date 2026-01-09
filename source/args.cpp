@@ -35,6 +35,7 @@
 using namespace std;
 
 static const string NDS_EXT = ".nds";
+static const string DSI_EXT = ".dsi";
 static const string ARG_EXT = ".argv";
 static const string EXT_EXT = ".ext";
 static const char EXT_DIR[] = "/nds";
@@ -193,7 +194,7 @@ static bool toExtPath(const string& dataFilePath, string& extFilePath) {
 }
 
 bool argsNdsPath(const std::string& filePath, std::string& ndsPath) {
-	if (strCaseEnd(filePath, NDS_EXT)) {
+	if (strCaseEnd(filePath, NDS_EXT) || strCaseEnd(filePath, DSI_EXT)) {
 		ndsPath = filePath;
 		return true;
 	} else	if (strCaseEnd(filePath, ARG_EXT)) {
@@ -219,7 +220,7 @@ bool argsFillArray(const string& filePath, vector<string>& argarray) {
 	// Ensure argarray is empty
 	argarray.clear();
 
-	if (strCaseEnd(filePath, NDS_EXT)) {
+	if (strCaseEnd(filePath, NDS_EXT) || strCaseEnd(filePath, DSI_EXT)) {
 		string absPath;
 		if (!toAbsPath(filePath, NULL, absPath)) {
 			return false;
@@ -262,7 +263,7 @@ bool argsFillArray(const string& filePath, vector<string>& argarray) {
 		argarray.push_back(move(absPath));
 	}
 
-	return argarray.size() > 0 && strCaseEnd(argarray[0], NDS_EXT);
+	return argarray.size() > 0 && (strCaseEnd(argarray[0], NDS_EXT) || strCaseEnd(argarray[0], DSI_EXT));
 }
 
 vector<string> argsGetExtensionList() {
@@ -270,6 +271,7 @@ vector<string> argsGetExtensionList() {
 
 	// Always supported files: NDS binaries and predefined argument lists
 	extensionList.push_back(NDS_EXT);
+	extensionList.push_back(DSI_EXT);
 	extensionList.push_back(ARG_EXT);
 
 	// Get a list of extension files: argument lists associated with a file type
