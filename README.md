@@ -40,9 +40,12 @@ Note: While the GPL license allows you to distribute modified versions of this p
 The latest sources may be obtained from devkitPro git using the command: `git clone git@github.com:devkitPro/nds-hb-menu.git`
 
 ```
- Copyright (C) 2005 - 2017
-	Michael "Chishm" Chisholm
+ Copyright (C) 2005 - 2026
+ 	Michael "Chishm" Chisholm
 	Dave "WinterMute" Murphy
+	Claudio "sverx"
+	fincs
+	
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
