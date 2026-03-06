@@ -118,7 +118,7 @@ endif
 
 all:	$(BUILD)
 
-cia:
+cia: BootStrap
 	$(MAKE) -C BootStrap bootstrap.cia
 
 dist:	$(BUILD) BootStrap
@@ -132,11 +132,10 @@ dist:	$(BUILD) BootStrap
 	@mkdir hbmenu/ACE3DS
 	@cp BootStrap/ACE3DS/_ds_menu.dat hbmenu/ACE3DS
 	@cp BootStrap/ACE3DS/_dsmenu.dat hbmenu/ACE3DS
-ifneq (,$(wildcard BootStrap/bootstrap.cia))
-	cp "BootStrap/bootstrap.cia" hbmenu
-endif
-	cp testfiles/* hbmenu/nds
-	zip -9r hbmenu-$(VERSION).zip hbmenu README.md COPYING
+	@[ ! -f BootStrap/bootstrap.cia ] || cp -v BootStrap/bootstrap.cia hbmenu
+	@[ ! -d private ] || cp -rv private hbmenu
+	@cp -v testfiles/* hbmenu/nds
+	@zip -9r hbmenu-$(VERSION).zip hbmenu README.md COPYING
 
 #---------------------------------------------------------------------------------
 $(BUILD): bootloader bootstub exceptionstub
