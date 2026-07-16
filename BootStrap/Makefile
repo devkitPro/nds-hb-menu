@@ -25,7 +25,7 @@ all: checkarm7 checkarm9 \
 _ds_menu.dat	:	$(TARGET).nds r4tfv2.dldi
 	@cp $(TARGET).nds _ds_menu.nds
 	@dlditool r4tfv2.dldi _ds_menu.nds
-	@r4denc $< _ds_menu.nds $@
+	@r4denc _ds_menu.nds $@
 
 ACE3DS/_ds_menu.dat	:	$(TARGET).nds ace3ds_sd.dldi
 	@[ -d ACE3DS ] || mkdir -p ACE3DS
@@ -115,7 +115,7 @@ $(TARGET).arm9i.elf:
 clean:
 	$(MAKE) -C arm9 clean
 	$(MAKE) -C arm7 clean
-	rm -f $(TARGET).nds $(TARGET).arm7.elf $(TARGET).arm9.elf _ds_menu.dat ez5sys.bin akmenu4.nds TTMENU.DAT _BOOT_MP.NDS ismat.dat EZDS.dat
+	rm -f $(TARGET).nds $(TARGET).arm7.elf $(TARGET).arm9.elf _ds_menu.dat _ds_menu.nds ez5sys.bin akmenu4.nds TTMENU.DAT _BOOT_MP.NDS ismat.dat EZDS.dat
 	rm -fr ACE3DS EX4DS
 	rm -f bootstrap.dsi $(TARGET).arm9i.elf bootstrap.cia
 
