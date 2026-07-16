@@ -19,7 +19,8 @@ export TOPDIR		:=	$(CURDIR)
 all: checkarm7 checkarm9 \
 	_ds_menu.dat ismat.dat ez5sys.bin \
 	akmenu4.nds TTMENU.DAT SCFW.SC _BOOT_MP.NDS \
-	ACE3DS/_ds_menu.dat ACE3DS/_dsmenu.dat EZDS.dat
+	ACE3DS/_ds_menu.dat ACE3DS/_dsmenu.dat EZDS.dat \
+	EX4DS/_ds_menu.dat
 
 _ds_menu.dat	:	$(TARGET).nds r4tfv2.dldi
 	@cp $(TARGET).nds _ds_menu.nds
@@ -32,12 +33,11 @@ ACE3DS/_ds_menu.dat	:	$(TARGET).nds ace3ds_sd.dldi
 	@dlditool ace3ds_sd.dldi ACE3DS/_ds_menu.nds
 	@r4denc --key 0x4002 ACE3DS/_ds_menu.nds $@
 
-# Alternative name for some ACE3DS clones.
-ACE3DS/_dsmenu.dat	:	$(TARGET).nds ace3ds_sd.dldi
-	@[ -d ACE3DS ] || mkdir -p ACE3DS
-	@cp $(TARGET).nds ACE3DS/_dsmenu.nds
-	@dlditool ace3ds_sd.dldi ACE3DS/_dsmenu.nds
-	@r4denc --key 0x4002 ACE3DS/_dsmenu.nds $@
+EX4DS/_ds_menu.dat	:	$(TARGET).nds ace3ds_sd.dldi
+	@[ -d EX4DS ] || mkdir -p EX4DS
+	@cp $(TARGET).nds EX4DS/_ds_menu.nds
+	@dlditool ace3ds_sd.dldi EX4DS/_ds_menu.nds
+	@r4denc EX4DS/_ds_menu.nds $@
 
 EZDS.dat: $(TARGET).nds EZDS_DLDI.dldi
 	@cp $< $@
@@ -80,7 +80,14 @@ bootstrap.dsi : $(TARGET).arm7.elf $(TARGET).arm9i.elf
 
 #---------------------------------------------------------------------------------
 $(TARGET).nds	:	$(TARGET).arm7.elf $(TARGET).arm9.elf
-	@ndstool	-g "####" "##" "R4XX" -h 0x200 -c $(TARGET).nds -7 $(TARGET).arm7.elf -9 $(TARGET).arm9.elf
+	@ndstool	-h 0x200 -c $(TARGET).nds -7 $(TARGET).arm7.elf -9 $(TARGET).arm9.elf
+
+# Alternative name for some ACE3DS clones.
+ACE3DS/_dsmenu.dat	:	$(TARGET).arm7.elf $(TARGET).arm9.elf
+	@[ -d ACE3DS ] || mkdir -p ACE3DS
+	@ndstool	-g "####" "##" "R4XX" -h 0x200 -c ACE3DS/_dsmenu.nds -7 $(TARGET).arm7.elf -9 $(TARGET).arm9.elf
+	@dlditool ace3ds_sd.dldi ACE3DS/_dsmenu.nds
+	@r4denc --key 0x4002 ACE3DS/_dsmenu.nds $@
 
 SCFW.SC	:	$(TARGET).arm7.elf $(TARGET).arm9.elf
 	@ndstool	-g "ENG0" "00" "DSONE" -h 0x200 -c SCFW.SC -7 $(TARGET).arm7.elf -9 $(TARGET).arm9.elf
@@ -109,6 +116,6 @@ clean:
 	$(MAKE) -C arm9 clean
 	$(MAKE) -C arm7 clean
 	rm -f $(TARGET).nds $(TARGET).arm7.elf $(TARGET).arm9.elf _ds_menu.dat ez5sys.bin akmenu4.nds TTMENU.DAT _BOOT_MP.NDS ismat.dat EZDS.dat
-	rm -fr ACE3DS
+	rm -fr ACE3DS EX4DS
 	rm -f bootstrap.dsi $(TARGET).arm9i.elf bootstrap.cia
 
