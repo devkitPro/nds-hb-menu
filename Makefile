@@ -132,6 +132,8 @@ dist:	$(BUILD) BootStrap
 	@mkdir hbmenu/ACE3DS
 	@cp BootStrap/ACE3DS/_ds_menu.dat hbmenu/ACE3DS
 	@cp BootStrap/ACE3DS/_dsmenu.dat hbmenu/ACE3DS
+	@mkdir hbmenu/EX4DS
+	@cp BootStrap/EX4DS/_ds_menu.dat hbmenu/EX4DS
 	@[ ! -f BootStrap/bootstrap.cia ] || cp -v BootStrap/bootstrap.cia hbmenu
 	@[ ! -d private ] || cp -rv private hbmenu
 	@cp -v testfiles/* hbmenu/nds
